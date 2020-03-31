@@ -17,14 +17,6 @@ type (
 		KafkaConsumer     sarama.Consumer
 		PartitionConsumer sarama.PartitionConsumer
 	}
-	// BorrowerInfo borrower info passed to lender
-	BorrowerInfo struct {
-		Info interface{} `json:"borrower_info"`
-	}
-	// Filter for searching basemodel
-	Filter struct {
-		IDCardNumber string `json:"idcard_number"`
-	}
 )
 
 var wg sync.WaitGroup

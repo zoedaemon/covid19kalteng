@@ -1,8 +1,10 @@
 package handlersAdmin
 
 import (
+	"covid19kalteng/components/logs"
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -12,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayannahindonesia/northstar/lib/northstarlib"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/thedevsaddam/govalidator"
@@ -184,7 +185,7 @@ func NLog(level string, tag string, message interface{}, jwttoken *jwt.Token, no
 	jMarshal, _ := json.Marshal(message)
 
 	if flag.Lookup("test.v") == nil {
-		err = covid19.App.Northstar.SubmitKafkaLog(northstarlib.Log{
+		err = covid19.App.Northstar.SubmitKafkaLog(logs.Log{
 			Level:    level,
 			Tag:      tag,
 			Messages: string(jMarshal),
@@ -222,7 +223,7 @@ func NAudittrail(ori interface{}, new interface{}, jwttoken *jwt.Token, entity s
 	newMarshal, _ := json.Marshal(new)
 
 	if flag.Lookup("test.v") == nil {
-		err = covid19.App.Northstar.SubmitKafkaLog(northstarlib.Audittrail{
+		err = covid19.App.Northstar.SubmitKafkaLog(logs.Audittrail{
 			Client:   covid19.App.Northstar.Secret,
 			UserID:   uid,
 			Username: username,
