@@ -1,0 +1,55 @@
+development:
+  messaging:
+    key: clientkey
+    secret: clientsecret
+    url: http://covid19kalteng.com/api-messaging
+    client_auth: /clientauth
+    sms: /client/message_sms_send
+  react_cors: true
+  database:
+    table: covid19kalteng
+    username: covid19user
+    password: covid19pass
+    host: postgres_db
+    port: "5432"
+    maxlifetime: 30
+    idle_conns: 10
+    open_conns: 100
+    sslmode: disable
+    logmode: true
+    timezone: Asia/Jakarta
+  kafka:
+    host: covid19kalteng_kafka
+    port: "9092"
+    client_id: covid19kalteng
+    user: "covid19user"
+    pass: "covid19pass"
+    sasl: false
+    log_verbose: true
+    topics:
+      produces: covid19kalteng_backend
+      consumes: covid19kalteng_backend
+  jwt:
+    duration: 10080 # in minutes
+    jwt_secret: sXQ8jUMpueOvN5P3cdCR
+  mailer:
+    host : smtp.gmail.com
+    port : 587
+    email : infra.covid19kalteng@gmail.com 
+    password : jakarta2019
+  s3:
+    debug_mode: 1
+    region: id-tbs
+    access_key: J2BYZXZ43VPZ27V4TCP3
+    secret_key: s0yHeS/eBvjmyshVckbNqVWnTKwhnaP6kYBpFBHk
+    host: https://bucket.cloud.lintasarta.co.id:8082
+    bucket_name: bucket-covid19kalteng
+  cron:
+    time: "0 */1 * * *"
+  northstar:
+    secret: bGVuZGVya2V5OmxlbmRlcnNlY3JldA==
+    topic: northstar_logger
+    send: true
+staging:
+
+production:

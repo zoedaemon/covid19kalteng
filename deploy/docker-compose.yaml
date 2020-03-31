@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+ 
+  postgres_db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: covid19user
+      POSTGRES_PASSWORD: covid19pass
+    ports:
+      - 5432:5432
+    container_name: postgres_db
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8010:8080
+    container_name: covid19kalteng_adminer
+    hostname: "adminer.local"
+
+  portainer:
+    image: portainer/portainer
+    container_name: "portainer"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -H unix:///var/run/docker.sock --no-auth
+    ports:
+      - 9000:9000
+  
+  zookeeper:
+    image: bitnami/zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_SERVER_USERS=covid19user
+      - ZOO_SERVER_PASSWORDS=covid19pass
+    container_name: covid19kalteng_zookeeper
+
+  kafka:
+    image: bitnami/kafka
+    ports:
+      - 9092:9092
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_BROKER_USER=covid19user
+      - KAFKA_BROKER_PASSWORD=covid19pass
+    container_name: covid19kalteng_kafka
+    
+networks:
+  default:
+    external:
+      name: covid19kalteng_net

@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+
+  covid19kalteng:
+    build: .
+    ports:
+      - 8001:8001
+    image: covid19kalteng:development
+    volumes:
+      - ./:/go/src/covid19kalteng
+    hostname: localhost
+    environment:
+      - APPNAME=covid19kalteng
+      - ENV=dev
+      - APPPORT=8001
+      - CONFIGPATH=$$GOPATH/src/covid19kalteng
+    container_name: covid19kalteng
+    
+networks:
+  default:
+    external:
+      name: covid19kalteng_net
