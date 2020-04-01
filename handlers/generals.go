@@ -3,7 +3,6 @@ package handlers
 import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/handlersAdmin"
-	"flag"
 	"fmt"
 	"strings"
 	"time"
@@ -11,7 +10,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/thedevsaddam/govalidator"
-	"gopkg.in/gomail.v2"
 )
 
 type (
@@ -145,31 +143,4 @@ func validatePermission(c echo.Context, permission string) error {
 	handlersAdmin.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
 
 	return fmt.Errorf("Permission Denied")
-}
-
-// SendMail sends email, reci
-func SendMail(subject string, message string, recipients ...string) error {
-	if flag.Lookup("test.v") == nil {
-		Config := covid19.App.Config.GetStringMap(fmt.Sprintf("%s.mailer", covid19.App.ENV))
-		mailer := gomail.NewMessage()
-		mailer.SetHeader("From", Config["email"].(string))
-		mailer.SetHeader("To", recipients[0])
-		if len(recipients) > 1 {
-			mailer.SetHeader("Cc", recipients[1])
-		}
-		mailer.SetHeader("Subject", subject)
-		mailer.SetBody("text/plain", message)
-
-		dialer := gomail.NewPlainDialer(Config["host"].(string),
-			Config["port"].(int),
-			Config["email"].(string),
-			Config["password"].(string))
-
-		err := dialer.DialAndSend(mailer)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

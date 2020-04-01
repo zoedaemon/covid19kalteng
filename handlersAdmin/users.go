@@ -245,7 +245,7 @@ func UserNew(c echo.Context) error {
 	message := "Selamat Pagi,\n\nIni adalah password anda untuk login " + tempPW + " \n\n\n Ayannah Solusi Nusantara Team"
 
 	err = components.SendMail(covid19.App.Config.GetStringMap(fmt.Sprintf("%s.mailer", covid19.App.ENV)),
-		to, subject, message)
+		subject, message, to)
 	if err != nil {
 		NLog("error", "UserNew", map[string]interface{}{"message": fmt.Sprintf("error sending password to email : %v", to), "error": err}, c.Get("user").(*jwt.Token), "", false)
 

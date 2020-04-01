@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"covid19kalteng/components"
 	"covid19kalteng/covid19"
 	"covid19kalteng/handlersAdmin"
 	"covid19kalteng/models"
@@ -147,7 +148,8 @@ func UserResetPasswordRequest(c echo.Context) error {
 		break
 	}
 
-	err = SendMail("Forgot Password Request", message, resetRequestPayload.Email)
+	err = components.SendMail(covid19.App.Config.GetStringMap(fmt.Sprintf("%s.mailer", covid19.App.ENV)),
+		"Forgot Password Request", message, resetRequestPayload.Email)
 	if err != nil {
 		handlersAdmin.NLog("error", "UserFirstLoginChangePassword", map[string]interface{}{"message": fmt.Sprintf("fail sending email to %v", resetRequestPayload.Email)}, c.Get("user").(*jwt.Token), "", false)
 
