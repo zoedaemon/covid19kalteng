@@ -1,13 +1,14 @@
 package modules
 
 import (
+	"covid19kalteng/components/basemodel"
+
 	"fmt"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/ayannahindonesia/basemodel"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 )

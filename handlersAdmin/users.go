@@ -242,7 +242,7 @@ func UserNew(c echo.Context) error {
 
 	to := newUser.Email
 	subject := "[NO REPLY] - Password Aplikasi Covid19Kalteng"
-	message := "Selamat Pagi,\n\nIni adalah password anda untuk login " + tempPW + " \n\n\n Ayannah Solusi Nusantara Team"
+	message := "Selamat Pagi,\n\nIni adalah password anda untuk login " + tempPW + " \n\n\n Zona Tiga Team"
 
 	err = components.SendMail(covid19.App.Config.GetStringMap(fmt.Sprintf("%s.mailer", covid19.App.ENV)),
 		subject, message, to)

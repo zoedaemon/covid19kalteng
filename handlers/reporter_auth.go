@@ -17,19 +17,19 @@ import (
 )
 
 type (
-	// LenderLoginCreds type
-	LenderLoginCreds struct {
+	// ReporterLoginCreds type
+	ReporterLoginCreds struct {
 		Key      string `json:"key"`
 		Password string `json:"password"`
 	}
 )
 
-// LenderLogin lender can choose either login with email / phone
-func LenderLogin(c echo.Context) error {
+// ReporterLogin lender can choose either login with email / phone
+func ReporterLogin(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	var (
-		credentials LenderLoginCreds
+		credentials ReporterLoginCreds
 		lender      models.User
 		validKey    bool
 		token       string
@@ -43,7 +43,7 @@ func LenderLogin(c echo.Context) error {
 
 	validate := validateRequestPayload(c, rules, &credentials)
 	if validate != nil {
-		handlersAdmin.NLog("warning", "LenderLogin", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", true)
+		handlersAdmin.NLog("warning", "ReporterLogin", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", true)
 
 		return returnInvalidResponse(http.StatusBadRequest, validate, "Login tidak valid")
 	}
@@ -57,19 +57,19 @@ func LenderLogin(c echo.Context) error {
 	if !validKey { // check the password
 		err = bcrypt.CompareHashAndPassword([]byte(lender.Password), []byte(credentials.Password))
 		if err != nil {
-			handlersAdmin.NLog("warning", "LenderLogin", map[string]interface{}{"message": fmt.Sprintf("password error on user %v", credentials.Key), "error": err}, c.Get("user").(*jwt.Token), "", true)
+			handlersAdmin.NLog("warning", "ReporterLogin", map[string]interface{}{"message": fmt.Sprintf("password error on user %v", credentials.Key), "error": err}, c.Get("user").(*jwt.Token), "", true)
 
 			return returnInvalidResponse(http.StatusUnauthorized, err, "Login tidak valid")
 		}
 
 		token, err = createJwtToken(strconv.FormatUint(lender.ID, 10), "users")
 		if err != nil {
-			handlersAdmin.NLog("warning", "LenderLogin", map[string]interface{}{"message": "error generating token", "error": err}, c.Get("user").(*jwt.Token), "", true)
+			handlersAdmin.NLog("warning", "ReporterLogin", map[string]interface{}{"message": "error generating token", "error": err}, c.Get("user").(*jwt.Token), "", true)
 
 			return returnInvalidResponse(http.StatusInternalServerError, err, "Terjadi kesalahan")
 		}
 	} else {
-		handlersAdmin.NLog("warning", "LenderLogin", map[string]interface{}{"message": fmt.Sprintf("user not found %v", credentials.Key)}, c.Get("user").(*jwt.Token), "", true)
+		handlersAdmin.NLog("warning", "ReporterLogin", map[string]interface{}{"message": fmt.Sprintf("user not found %v", credentials.Key)}, c.Get("user").(*jwt.Token), "", true)
 
 		return returnInvalidResponse(http.StatusUnauthorized, "username not found", "Login tidak valid")
 	}
@@ -77,7 +77,7 @@ func LenderLogin(c echo.Context) error {
 	jwtConf := covid19.App.Config.GetStringMap(fmt.Sprintf("%s.jwt", covid19.App.ENV))
 	expiration := time.Duration(jwtConf["duration"].(int)) * time.Minute
 
-	handlersAdmin.NLog("info", "LenderLogin", map[string]interface{}{"message": fmt.Sprintf("%v login", credentials.Key)}, c.Get("user").(*jwt.Token), "", true)
+	handlersAdmin.NLog("info", "ReporterLogin", map[string]interface{}{"message": fmt.Sprintf("%v login", credentials.Key)}, c.Get("user").(*jwt.Token), "", true)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"token":      token,
