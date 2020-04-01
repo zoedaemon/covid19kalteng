@@ -149,7 +149,7 @@ func BankList(c echo.Context) error {
 	// 	if validate != nil {
 	// 		NLog("warning", "BankNew", map[string]interface{}{"message": "error validate new bank", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-	// 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+	// 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	// 	}
 
 	// 	marshal, _ := json.Marshal(bankPayload)
@@ -246,7 +246,7 @@ func BankList(c echo.Context) error {
 	// 	if validate != nil {
 	// 		NLog("warning", "BankPatch", map[string]interface{}{"message": "error validation", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-	// 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+	// 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	// 	}
 
 	// 	if len(bankPayload.Name) > 0 {

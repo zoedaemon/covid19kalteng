@@ -115,7 +115,7 @@ func UserResetPasswordRequest(c echo.Context) error {
 	if validate != nil {
 		handlersAdmin.NLog("warning", "UserResetPasswordRequest", map[string]interface{}{"message": "error validation", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	db := covid19.App.DB
@@ -178,7 +178,7 @@ func UserResetPasswordVerify(c echo.Context) error {
 	if validate != nil {
 		handlersAdmin.NLog("warning", "UserResetPasswordVerify", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	d, err := decrypt(resetVerifyPayload.Token, covid19.App.Config.GetString(fmt.Sprintf("%s.passphrase", covid19.App.ENV)))

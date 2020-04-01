@@ -65,7 +65,7 @@ func UserFirstLoginChangePassword(c echo.Context) error {
 		if validate != nil {
 			NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-			return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+			return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 		}
 		userModel.FirstLoginChangePassword(pass.Pass)
 		NLog("info", "UserFirstLoginChangePassword", map[string]interface{}{"message": "changed password"}, c.Get("user").(*jwt.Token), "", false)

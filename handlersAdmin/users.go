@@ -188,7 +188,7 @@ func UserNew(c echo.Context) error {
 	if validate != nil {
 		NLog("warning", "UserNew", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	if userPayload.Bank > 0 {
@@ -289,7 +289,7 @@ func UserPatch(c echo.Context) error {
 	if validate != nil {
 		NLog("warning", "UserPatch", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	// bankRep := models.BankRepresentatives{}

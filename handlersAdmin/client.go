@@ -30,7 +30,7 @@ func CreateClient(c echo.Context) error {
 	if validate != nil {
 		NLog("warning", "CreateClient", map[string]interface{}{"message": "validation create client error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	err = client.Create()

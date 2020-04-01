@@ -123,7 +123,7 @@ func RoleNew(c echo.Context) error {
 	if validate != nil {
 		NLog("warning", "RoleNew", map[string]interface{}{"message": "validation error", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	marshal, _ := json.Marshal(rolePayload)
@@ -173,7 +173,7 @@ func RolePatch(c echo.Context) error {
 	if validate != nil {
 		NLog("warning", "RolePatch", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	if len(rolePayload.Name) > 0 {

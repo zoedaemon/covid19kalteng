@@ -21,7 +21,7 @@ func NewRouter() *echo.Echo {
 
 	AdminGroup(e)
 	ClientGroup(e)
-	LenderGroup(e)
+	ReporterGroup(e)
 
 	return e
 }
