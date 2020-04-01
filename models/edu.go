@@ -37,12 +37,12 @@ func (model *Edu) FindbyID(id uint64) error {
 }
 
 // SingleFindFilter func
-func (model *Edu) SingleFindFilter(filter interface{}) error {
+func (model *Edu) FindSingle(filter interface{}) error {
 	return basemodel.SingleFindFilter(&model, filter)
 }
 
 // PagedFindFilter func
-func (model *Edu) PagedFindFilter(page int, rows int, orderby []string, sort []string, filter interface{}) (basemodel.PagedFindResult, error) {
+func (model *Edu) FindPaged(page int, rows int, orderby []string, sort []string, filter interface{}) (basemodel.PagedFindResult, error) {
 	edu := []Edu{}
 
 	return basemodel.PagedFindFilter(&edu, page, rows, orderby, sort, filter)
