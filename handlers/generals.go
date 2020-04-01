@@ -12,6 +12,15 @@ import (
 	"github.com/thedevsaddam/govalidator"
 )
 
+const (
+	//NLOGMSG for message body
+	NLOGMSG = "message"
+	//NLOGERR for error info
+	NLOGERR = "error"
+	//NLOGQUERY for detailed query tracing
+	NLOGQUERY = "query"
+)
+
 type (
 	// JWTclaims jwtclaims
 	JWTclaims struct {

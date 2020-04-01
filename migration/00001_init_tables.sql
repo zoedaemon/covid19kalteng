@@ -40,6 +40,15 @@ CREATE TABLE "users" (
     PRIMARY KEY ("id")
 ) WITH (OIDS = FALSE);
 
+CREATE TABLE "edu" (
+    "id" bigserial,
+    "created_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" timestamptz,
+    "title" varchar(512),
+    "description" text,
+    PRIMARY KEY ("id")
+) WITH (OIDS = FALSE);
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
@@ -47,3 +56,4 @@ CREATE TABLE "users" (
 DROP TABLE IF EXISTS "clients" CASCADE;
 DROP TABLE IF EXISTS "roles" CASCADE;
 DROP TABLE IF EXISTS "users" CASCADE;
+DROP TABLE IF EXISTS "edu" CASCADE;

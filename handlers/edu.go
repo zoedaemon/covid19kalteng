@@ -1,125 +1,50 @@
-package handlersAdmin
+package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo"
 )
 
-// type (
-// 	// BankSelect for custom query
-// 	BankSelect struct {
-// 		models.Bank
-// 		BankTypeName string `json:"bank_type_name"`
-// 	}
-// 	// BankPayload request body container
-// 	BankPayload struct {
-// 		Name     string  `json:"name"`
-// 		Image    string  `json:"image"`
-// 		Type     uint64  `json:"type"`
-// 		Address  string  `json:"address"`
-// 		Province string  `json:"province"`
-// 		City     string  `json:"city"`
-// 		PIC      string  `json:"pic"`
-// 		Phone    string  `json:"phone"`
-// 		Services []int64 `json:"services"`
-// 		Products []int64 `json:"products"`
-// 	}
-// )
+// EduList get all bank list
+func EduList(c echo.Context) error {
+	defer c.Request().Body.Close()
+	
+	LogTag := "LoanPurposeList"
 
-// BankList get all bank list
-func BankList(c echo.Context) error {
-	// 	defer c.Request().Body.Close()
-	// 	err := validatePermission(c, "core_bank_list")
-	// 	if err != nil {
-	// 		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
-	// 	}
+	// pagination parameters
+	rows, err := strconv.Atoi(c.QueryParam("rows"))
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	orderby := c.QueryParam("orderby")
+	sort := c.QueryParam("sort")
 
-	// 	db := covid19.App.DB
-	// 	var (
-	// 		totalRows int
-	// 		offset    int
-	// 		rows      int
-	// 		page      int
-	// 		lastPage  int
-	// 		banks     []BankSelect
-	// 	)
+	// filters
+	name := c.QueryParam("name")
+	status := c.QueryParam("status")
 
-	// 	// pagination parameters
-	// 	rows, _ = strconv.Atoi(c.QueryParam("rows"))
-	// 	if rows > 0 {
-	// 		page, _ = strconv.Atoi(c.QueryParam("page"))
-	// 		if page <= 0 {
-	// 			page = 1
-	// 		}
-	// 		offset = (page * rows) - rows
-	// 	}
+	type Filter struct {
+		Name   string `json:"name" condition:"LIKE"`
+		Status string `json:"status"`
+	}
 
-	// 	db = db.Table("banks").
-	// 		Select("banks.*, bt.name as bank_type_name").
-	// 		Joins("INNER JOIN bank_types bt ON banks.type = bt.id")
+	purposes := models.LoanPurpose{}
+	result, err := purposes.PagedFilterSearch(page, rows, orderby, sort, &Filter{
+		Name:   name,
+		Status: status,
+	})
+	if err != nil {
 
-	// 	if searchAll := c.QueryParam("search_all"); len(searchAll) > 0 {
-	// 		db = db.Or("LOWER(bt.name) LIKE ?", "%"+strings.ToLower(searchAll)+"%").
-	// 			Or("LOWER(banks.name) LIKE ?", "%"+strings.ToLower(searchAll)+"%").
-	// 			Or("LOWER(banks.pic) LIKE ?", "%"+strings.ToLower(searchAll)+"%").
-	// 			Or("CAST(banks.id as varchar(255)) = ?", searchAll)
-	// 	} else {
-	// 		if name := c.QueryParam("name"); len(name) > 0 {
-	// 			db = db.Where("LOWER(banks.name) LIKE ?", "%"+strings.ToLower(name)+"%")
-	// 		}
-	// 		if bankType := c.QueryParam("bank_type"); len(bankType) > 0 {
-	// 			db = db.Where("LOWER(bt.name) LIKE ?", "%"+strings.ToLower(bankType)+"%")
-	// 		}
-	// 		if pic := c.QueryParam("pic"); len(pic) > 0 {
-	// 			db = db.Where("LOWER(banks.pic) LIKE ?", "%"+strings.ToLower(pic)+"%")
-	// 		}
-	// 		if id := customSplit(c.QueryParam("id"), ","); len(id) > 0 {
-	// 			db = db.Where("banks.id IN (?)", id)
-	// 		}
-	// 	}
+		NLog("warning", LogTag, map[string]interface{}{
+			NLOGMSG:   "error get Education list",
+			NLOGERR:   err,
+			NLOGQUERY: asira.App.DB.QueryExpr()}, c.Get("user").(*jwt.Token), "", true, "")
 
-	// 	if order := strings.Split(c.QueryParam("orderby"), ","); len(order) > 0 {
-	// 		if sort := strings.Split(c.QueryParam("sort"), ","); len(sort) > 0 {
-	// 			for k, v := range order {
-	// 				q := v
-	// 				if len(sort) > k {
-	// 					value := sort[k]
-	// 					if strings.ToUpper(value) == "ASC" || strings.ToUpper(value) == "DESC" {
-	// 						q = v + " " + strings.ToUpper(value)
-	// 					}
-	// 				}
-	// 				db = db.Order(q)
-	// 			}
-	// 		}
-	// 	}
+		return returnInvalidResponse(http.StatusInternalServerError, err, "data edukasi kosong")
+	}
 
-	// 	tempDB := db
-	// 	tempDB.Where("banks.deleted_at IS NULL").Count(&totalRows)
-
-	// 	if rows > 0 {
-	// 		db = db.Limit(rows).Offset(offset)
-	// 		lastPage = int(math.Ceil(float64(totalRows) / float64(rows)))
-	// 	}
-	// 	err = db.Find(&banks).Error
-	// 	if err != nil {
-	// 		NLog("warning", "BankList", map[string]interface{}{"message": "bank listing error", "error": err}, c.Get("user").(*jwt.Token), "", false)
-
-	// 		return returnInvalidResponse(http.StatusNotFound, err, "Tidak ada data bank ditemukan")
-	// 	}
-
-	// 	result := basemodel.PagedFindResult{
-	// 		TotalData:   totalRows,
-	// 		Rows:        rows,
-	// 		CurrentPage: page,
-	// 		LastPage:    lastPage,
-	// 		From:        offset + 1,
-	// 		To:          offset + rows,
-	// 		Data:        banks,
-	// 	}
-
-	// 	return c.JSON(http.StatusOK, result)
-	// }
+	return c.JSON(http.StatusOK, result)
+ }
 
 	// // BankNew create new bank
 	// func BankNew(c echo.Context) error {
