@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"covid19kalteng/covid19"
-	"covid19kalteng/handlersAdmin"
+	"covid19kalteng/modules/nlogs"
 	"fmt"
 	"strings"
 	"time"
@@ -136,11 +136,11 @@ func validatePermission(c echo.Context, permission string) error {
 				}
 			}
 		}
-		handlersAdmin.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
+		nlogs.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
 
 		return fmt.Errorf("Permission Denied")
 	}
-	handlersAdmin.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
+	nlogs.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
 
 	return fmt.Errorf("Permission Denied")
 }

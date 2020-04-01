@@ -3,6 +3,7 @@ package migration
 import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+
 	"fmt"
 	"strings"
 

@@ -3,9 +3,10 @@ package handlersAdmin
 import (
 	"covid19kalteng/components"
 	"covid19kalteng/components/basemodel"
-
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+	"covid19kalteng/modules/nlogs"
+
 	"encoding/json"
 	"fmt"
 	"math"
@@ -114,7 +115,7 @@ func UserList(c echo.Context) error {
 	}
 	err = db.Find(&results).Error
 	if err != nil {
-		NLog("warning", "UserList", map[string]interface{}{"message": "error listing users", "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "UserList", map[string]interface{}{"message": "error listing users", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusNotFound, err, "Tidak ada data user yang tersedia")
 	}
@@ -155,7 +156,7 @@ func UserDetails(c echo.Context) error {
 		Joins("LEFT JOIN banks b ON br.bank_id = b.id").
 		Where("users.id = ?", userID).Find(&user).Error
 	if err != nil {
-		NLog("warning", "UserDetails", map[string]interface{}{"message": fmt.Sprintf("error finding user %v", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "UserDetails", map[string]interface{}{"message": fmt.Sprintf("error finding user %v", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusNotFound, err, "User ID tidak ditemukan")
 	}
@@ -186,7 +187,7 @@ func UserNew(c echo.Context) error {
 
 	validate := validateRequestPayload(c, payloadRules, &userPayload)
 	if validate != nil {
-		NLog("warning", "UserNew", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "UserNew", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
@@ -199,7 +200,7 @@ func UserNew(c echo.Context) error {
 			Where("roles.system = ?", "Dashboard").Count(&count)
 
 		if len(userPayload.Roles) != count {
-			NLog("warning", "UserNew", map[string]interface{}{"message": "invalid roles given", "error": err}, c.Get("user").(*jwt.Token), "", false)
+			nlogs.NLog("warning", "UserNew", map[string]interface{}{"message": "invalid roles given", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 			return returnInvalidResponse(http.StatusInternalServerError, nil, "Roles tidak valid.")
 		}
@@ -222,7 +223,7 @@ func UserNew(c echo.Context) error {
 
 	err = newUser.Create()
 	if err != nil {
-		NLog("error", "UserNew", map[string]interface{}{"message": "error creating user", "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("error", "UserNew", map[string]interface{}{"message": "error creating user", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat User")
 	}
@@ -234,7 +235,7 @@ func UserNew(c echo.Context) error {
 	// 	}
 	// 	err = bankRep.Create()
 	// 	if err != nil {
-	// 		NLog("error", "UserNew", map[string]interface{}{"message": "error creating bank representative", "error": err}, c.Get("user").(*jwt.Token), "", false)
+	// 		nlogs.NLog("error", "UserNew", map[string]interface{}{"message": "error creating bank representative", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 	// 		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat Bank User")
 	// 	}
@@ -247,12 +248,12 @@ func UserNew(c echo.Context) error {
 	err = components.SendMail(covid19.App.Config.GetStringMap(fmt.Sprintf("%s.mailer", covid19.App.ENV)),
 		subject, message, to)
 	if err != nil {
-		NLog("error", "UserNew", map[string]interface{}{"message": fmt.Sprintf("error sending password to email : %v", to), "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("error", "UserNew", map[string]interface{}{"message": fmt.Sprintf("error sending password to email : %v", to), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal mengirim password ke email anda")
 	}
 
-	NAudittrail(models.User{}, newUser, c.Get("user").(*jwt.Token), "user", fmt.Sprint(newUser.ID), "create")
+	nlogs.NAudittrail(models.User{}, newUser, c.Get("user").(*jwt.Token), "user", fmt.Sprint(newUser.ID), "create")
 
 	return c.JSON(http.StatusCreated, newUser)
 }
@@ -271,7 +272,7 @@ func UserPatch(c echo.Context) error {
 	userPayload := UserPayload{}
 	err = userM.FindbyID(userID)
 	if err != nil {
-		NLog("warning", "UserPatch", map[string]interface{}{"message": "error finding user", "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "error finding user", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("User %v tidak ditemukan", userID))
 	}
@@ -287,7 +288,7 @@ func UserPatch(c echo.Context) error {
 	}
 	validate := validateRequestPayload(c, payloadRules, &userPayload)
 	if validate != nil {
-		NLog("warning", "UserPatch", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
@@ -302,7 +303,7 @@ func UserPatch(c echo.Context) error {
 	// 		Where("roles.system = ?", "Dashboard").Count(&count)
 
 	// 	if len(userPayload.Roles) != count {
-	// 		NLog("warning", "UserPatch", map[string]interface{}{"message": "invalid roles", "roles": userPayload.Roles}, c.Get("user").(*jwt.Token), "", false)
+	// 		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "invalid roles", "roles": userPayload.Roles}, c.Get("user").(*jwt.Token), "", false)
 
 	// 		return returnInvalidResponse(http.StatusUnprocessableEntity, nil, "Roles tidak valid.")
 	// 	}
@@ -326,12 +327,12 @@ func UserPatch(c echo.Context) error {
 
 	err = userM.Save()
 	if err != nil {
-		NLog("error", "UserPatch", map[string]interface{}{"message": "error saving user", "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("error", "UserPatch", map[string]interface{}{"message": "error saving user", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusInternalServerError, err, fmt.Sprintf("Gagal update User %v", userID))
 	}
 
-	NAudittrail(origin, userM, c.Get("user").(*jwt.Token), "user", fmt.Sprint(userM.ID), "update")
+	nlogs.NAudittrail(origin, userM, c.Get("user").(*jwt.Token), "user", fmt.Sprint(userM.ID), "update")
 
 	return c.JSON(http.StatusOK, userM)
 }
