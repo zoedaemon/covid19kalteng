@@ -2,6 +2,8 @@ package handlersAdmin
 
 import (
 	"covid19kalteng/models"
+	"covid19kalteng/modules/nlogs"
+
 	"fmt"
 	"net/http"
 
@@ -28,19 +30,19 @@ func CreateClient(c echo.Context) error {
 
 	validate := validateRequestPayload(c, payloadRules, &client)
 	if validate != nil {
-		NLog("warning", "CreateClient", map[string]interface{}{"message": "validation create client error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "CreateClient", map[string]interface{}{"message": "validation create client error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	err = client.Create()
 	if err != nil {
-		NLog("warning", "CreateClient", map[string]interface{}{"message": "error create client", "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "CreateClient", map[string]interface{}{"message": "error create client", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat Client Config")
 	}
 
-	NAudittrail(models.Client{}, client, c.Get("user").(*jwt.Token), "client", fmt.Sprint(client.ID), "create")
+	nlogs.NAudittrail(models.Client{}, client, c.Get("user").(*jwt.Token), "client", fmt.Sprint(client.ID), "create")
 
 	return c.JSON(http.StatusCreated, client)
 }

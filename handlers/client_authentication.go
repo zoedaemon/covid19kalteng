@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"covid19kalteng/covid19"
-	"covid19kalteng/handlersAdmin"
 	"covid19kalteng/models"
+	"covid19kalteng/modules/nlogs"
+
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
@@ -39,14 +39,14 @@ func ClientLogin(c echo.Context) error {
 		Secret: auth[1],
 	})
 	if err != nil {
-		handlersAdmin.NLog("warning", "ClientLogin", map[string]interface{}{"message": "client login failed"}, c.Get("user").(*jwt.Token), "", true)
+		nlogs.NLog("warning", "ClientLogin", map[string]interface{}{"message": "client login failed"}, nil, "", true)
 
 		return returnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
 	}
 
 	token, err := createJwtToken(strconv.FormatUint(client.ID, 10), "client")
 	if err != nil {
-		handlersAdmin.NLog("warning", "ClientLogin", map[string]interface{}{"message": "fail creating client token"}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "ClientLogin", map[string]interface{}{"message": "fail creating client token"}, nil, "", false)
 
 		return returnInvalidResponse(http.StatusInternalServerError, err, "Terjadi kesalahan")
 	}

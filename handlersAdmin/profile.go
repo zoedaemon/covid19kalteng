@@ -2,6 +2,8 @@ package handlersAdmin
 
 import (
 	"covid19kalteng/models"
+	"covid19kalteng/modules/nlogs"
+
 	"fmt"
 	"net/http"
 	"strconv"
@@ -24,7 +26,7 @@ func AdminProfile(c echo.Context) error {
 	userID, _ := strconv.ParseUint(claims["jti"].(string), 10, 64)
 	err := userModel.FindbyID(userID)
 	if err != nil {
-		NLog("warning", "AdminProfile", map[string]interface{}{"message": fmt.Sprintf("user id %v profile not found", userID), "error": err}, c.Get("user").(*jwt.Token), "", true)
+		nlogs.NLog("warning", "AdminProfile", map[string]interface{}{"message": fmt.Sprintf("user id %v profile not found", userID), "error": err}, c.Get("user").(*jwt.Token), "", true)
 
 		return returnInvalidResponse(http.StatusForbidden, err, "Tidak memiliki akses.")
 	}
@@ -46,7 +48,7 @@ func UserFirstLoginChangePassword(c echo.Context) error {
 	userID, _ := strconv.ParseUint(claims["jti"].(string), 10, 64)
 	err := userModel.FindbyID(userID)
 	if err != nil {
-		NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": fmt.Sprintf("user id %v profile not found", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": fmt.Sprintf("user id %v profile not found", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusForbidden, err, "Tidak memiliki akses.")
 	}
@@ -63,18 +65,18 @@ func UserFirstLoginChangePassword(c echo.Context) error {
 
 		validate := validateRequestPayload(c, payloadRules, &pass)
 		if validate != nil {
-			NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
+			nlogs.NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-			return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Hambatan validasi")
+			return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 		}
 		userModel.FirstLoginChangePassword(pass.Pass)
-		NLog("info", "UserFirstLoginChangePassword", map[string]interface{}{"message": "changed password"}, c.Get("user").(*jwt.Token), "", false)
+		nlogs.NLog("info", "UserFirstLoginChangePassword", map[string]interface{}{"message": "changed password"}, c.Get("user").(*jwt.Token), "", false)
 
-		NAudittrail(origin, userModel, token, "user", fmt.Sprint(userModel.ID), "user first login change password")
+		nlogs.NAudittrail(origin, userModel, token, "user", fmt.Sprint(userModel.ID), "user first login change password")
 
 		return c.JSON(http.StatusOK, "Password anda telah diganti.")
 	}
-	NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "cant change password, not first login"}, c.Get("user").(*jwt.Token), "", false)
+	nlogs.NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "cant change password, not first login"}, c.Get("user").(*jwt.Token), "", false)
 
 	return c.JSON(http.StatusUnauthorized, "Akun anda bukan akun baru.")
 }
