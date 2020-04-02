@@ -83,12 +83,12 @@ func getAdminLoginToken(e *httpexpect.Expect, auth *httpexpect.Expect, admin_id 
 	return obj.Value("token").String().Raw()
 }
 
-func getLenderAdminToken(e *httpexpect.Expect, auth *httpexpect.Expect) string {
+func getTokenAuth(e *httpexpect.Expect, auth *httpexpect.Expect) string {
 	obj := auth.GET("/clientauth").
 		Expect().
 		Status(http.StatusOK).JSON().Object()
 
-	admintoken := obj.Value("token").String().Raw()
+	token := obj.Value("token").String().Raw()
 
-	return admintoken
+	return token
 }

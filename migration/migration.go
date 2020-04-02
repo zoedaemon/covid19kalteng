@@ -2,7 +2,6 @@ package migration
 
 import (
 	"covid19kalteng/covid19"
-	"covid19kalteng/middlewares"
 	"covid19kalteng/models"
 
 	"fmt"
@@ -11,7 +10,7 @@ import (
 	"github.com/lib/pq"
 )
 
-// Seed func
+//Seed func
 func Seed() {
 	if covid19.App.ENV == "development" {
 		seedClients()
@@ -21,7 +20,7 @@ func Seed() {
 	}
 }
 
-// // TestSeed func
+//TestSeed func
 func TestSeed() {
 	if covid19.App.ENV == "development" {
 		seedClients()
@@ -167,6 +166,5 @@ func seedEdu() {
 	}
 	for _, edu := range edus {
 		edu.Create()
-		middlewares.SubmitKafkaPayload(edu, "faq_create")
 	}
 }
