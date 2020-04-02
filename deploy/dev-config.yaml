@@ -7,7 +7,7 @@ development:
     sms: /client/message_sms_send
   react_cors: true
   database:
-    table: covid19kalteng
+    db: covid19kalteng
     username: covid19user
     password: covid19pass
     host: postgres_db
