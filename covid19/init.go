@@ -138,7 +138,7 @@ func (x *Application) DBinit() error {
 		Port:           dbconf["port"].(string),
 		Username:       dbconf["username"].(string),
 		Password:       dbconf["password"].(string),
-		Table:          dbconf["table"].(string),
+		Db:             dbconf["db"].(string),
 		Timezone:       dbconf["timezone"].(string),
 		Maxlifetime:    dbconf["maxlifetime"].(int),
 		IdleConnection: dbconf["idle_conns"].(int),
