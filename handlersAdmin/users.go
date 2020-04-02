@@ -27,9 +27,8 @@ type (
 		// UserSelect custom query
 		models.User
 		RolesName pq.StringArray `json:"roles_name"`
-		BankID    uint64         `json:"bank_id"`
-		BankName  string         `json:"bank_name"`
 	}
+
 	// UserPayload handle user request body
 	UserPayload struct {
 		Roles    []int64 `json:"roles"`
@@ -37,7 +36,6 @@ type (
 		Email    string  `json:"email"`
 		Phone    string  `json:"phone"`
 		Status   string  `json:"status"`
-		Bank     uint64  `json:"bank"`
 	}
 )
 
@@ -67,13 +65,11 @@ func UserList(c echo.Context) error {
 		offset = (page * rows) - rows
 	}
 	db = db.Table("users").
-		Select("DISTINCT users.*, (SELECT ARRAY_AGG(r.name) FROM roles r WHERE id IN (SELECT UNNEST(users.roles))) as roles_name, b.id as bank_id, b.name as bank_name").
-		Joins("INNER JOIN roles r ON r.id IN (SELECT UNNEST(users.roles))").
-		Joins("LEFT JOIN bank_representatives br ON br.user_id = users.id").
-		Joins("LEFT JOIN banks b ON br.bank_id = b.id")
+		Select("DISTINCT users.*, (SELECT ARRAY_AGG(r.name) FROM roles r WHERE id IN (SELECT UNNEST(users.roles))) as roles_name").
+		Joins("INNER JOIN roles r ON r.id IN (SELECT UNNEST(users.roles))")
 
 	if searchAll := c.QueryParam("search_all"); len(searchAll) > 0 {
-		db = db.Or("users.username LIKE ?", "%"+searchAll+"%").Or("users.id = ?", searchAll).Or("users.email LIKE ?", "%"+searchAll+"%").Or("users.phone LIKE ?", "%"+searchAll+"%").Or("bank_name LIKE ?", "%"+searchAll+"%")
+		db = db.Or("users.username LIKE ?", "%"+searchAll+"%").Or("users.id = ?", searchAll).Or("users.email LIKE ?", "%"+searchAll+"%").Or("users.phone LIKE ?", "%"+searchAll+"%")
 	} else {
 		if name := c.QueryParam("username"); len(name) > 0 {
 			db = db.Where("users.username LIKE ?", "%"+name+"%")
@@ -86,9 +82,6 @@ func UserList(c echo.Context) error {
 		}
 		if phone := c.QueryParam("phone"); len(phone) > 0 {
 			db = db.Where("users.phone LIKE ?", "%"+phone+"%")
-		}
-		if bankName := c.QueryParam("bank_name"); len(bankName) > 0 {
-			db = db.Where("bank_name LIKE ?", "%"+bankName+"%")
 		}
 	}
 
@@ -150,10 +143,8 @@ func UserDetails(c echo.Context) error {
 	userID, _ := strconv.Atoi(c.Param("id"))
 
 	err = db.Table("users").
-		Select("DISTINCT users.*, (SELECT ARRAY_AGG(r.name) FROM roles r WHERE id IN (SELECT UNNEST(users.roles))) as roles_name, b.id as bank_id, b.name as bank_name").
+		Select("DISTINCT users.*, (SELECT ARRAY_AGG(r.name) FROM roles r WHERE id IN (SELECT UNNEST(users.roles))) as roles_name").
 		Joins("INNER JOIN roles r ON r.id IN (SELECT UNNEST(users.roles))").
-		Joins("LEFT JOIN bank_representatives br ON br.user_id = users.id").
-		Joins("LEFT JOIN banks b ON br.bank_id = b.id").
 		Where("users.id = ?", userID).Find(&user).Error
 	if err != nil {
 		nlogs.NLog("warning", "UserDetails", map[string]interface{}{"message": fmt.Sprintf("error finding user %v", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
@@ -166,7 +157,7 @@ func UserDetails(c echo.Context) error {
 
 // UserNew create new user
 func UserNew(c echo.Context) error {
-	// bankRepsFlag := false
+
 	defer c.Request().Body.Close()
 	err := validatePermission(c, "core_user_new")
 	if err != nil {
@@ -180,7 +171,6 @@ func UserNew(c echo.Context) error {
 		"username": []string{"required", "unique:users,username"},
 		"email":    []string{"required", "unique:users,email"},
 		"phone":    []string{"required", "unique:users,phone"},
-		"bank":     []string{"valid_id:banks"},
 		"roles":    []string{"valid_id:roles"},
 		"status":   []string{},
 	}
@@ -190,22 +180,6 @@ func UserNew(c echo.Context) error {
 		nlogs.NLog("warning", "UserNew", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
-	}
-
-	if userPayload.Bank > 0 {
-		db := covid19.App.DB
-		var count int
-		db.Table("roles").Select("*").
-			Where("roles.id IN (?)", []int64(userPayload.Roles)).
-			Where("roles.system = ?", "Dashboard").Count(&count)
-
-		if len(userPayload.Roles) != count {
-			nlogs.NLog("warning", "UserNew", map[string]interface{}{"message": "invalid roles given", "error": err}, c.Get("user").(*jwt.Token), "", false)
-
-			return returnInvalidResponse(http.StatusInternalServerError, nil, "Roles tidak valid.")
-		}
-
-		// bankRepsFlag = true
 	}
 
 	marshal, _ := json.Marshal(userPayload)
@@ -227,19 +201,6 @@ func UserNew(c echo.Context) error {
 
 		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat User")
 	}
-
-	// if bankRepsFlag {
-	// 	bankRep := models.BankRepresentatives{
-	// 		UserID: newUser.ID,
-	// 		BankID: userPayload.Bank,
-	// 	}
-	// 	err = bankRep.Create()
-	// 	if err != nil {
-	// 		nlogs.NLog("error", "UserNew", map[string]interface{}{"message": "error creating bank representative", "error": err}, c.Get("user").(*jwt.Token), "", false)
-
-	// 		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat Bank User")
-	// 	}
-	// }
 
 	to := newUser.Email
 	subject := "[NO REPLY] - Password Aplikasi Covid19Kalteng"
@@ -282,7 +243,6 @@ func UserPatch(c echo.Context) error {
 		"username": []string{},
 		"email":    []string{},
 		"phone":    []string{},
-		"bank":     []string{"valid_id:banks"},
 		"roles":    []string{"valid_id:roles"},
 		"status":   []string{},
 	}
@@ -293,21 +253,17 @@ func UserPatch(c echo.Context) error {
 		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
-	// bankRep := models.BankRepresentatives{}
-	// bankRep.FindbyUserID(int(userM.ID))
-	// if len(userPayload.Roles) > 0 && bankRep.ID != 0 {
-	// 	db := covid19.App.DB
-	// 	var count int
-	// 	db.Table("roles").Select("*").
-	// 		Where("roles.id IN (?)", []int64(userPayload.Roles)).
-	// 		Where("roles.system = ?", "Dashboard").Count(&count)
+	db := covid19.App.DB
+	var count int
+	db.Table("roles").Select("*").
+		Where("roles.id IN (?)", []int64(userPayload.Roles)).
+		Where("roles.system = ?", "Dashboard").Count(&count)
 
-	// 	if len(userPayload.Roles) != count {
-	// 		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "invalid roles", "roles": userPayload.Roles}, c.Get("user").(*jwt.Token), "", false)
+	if len(userPayload.Roles) != count {
+		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "invalid roles", "roles": userPayload.Roles}, c.Get("user").(*jwt.Token), "", false)
 
-	// 		return returnInvalidResponse(http.StatusUnprocessableEntity, nil, "Roles tidak valid.")
-	// 	}
-	// }
+		return returnInvalidResponse(http.StatusUnprocessableEntity, nil, "Roles tidak valid.")
+	}
 
 	if len(userPayload.Username) > 0 {
 		userM.Username = userPayload.Username

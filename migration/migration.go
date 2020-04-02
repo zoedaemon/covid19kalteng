@@ -37,6 +37,7 @@ func Truncate(tableList []string) (err error) {
 				"clients",
 				"roles",
 				"users",
+				"edus",
 			}
 		}
 
