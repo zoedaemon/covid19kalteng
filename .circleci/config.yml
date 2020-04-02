@@ -22,5 +22,7 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run: go get -v -t -d ./...
+      - run: go get -u github.com/golang/dep/cmd/dep
+      - run: cp deploy/dev-config.yaml config.yaml
+      - run: dep ensure -v
       - run: go test -v ./...
