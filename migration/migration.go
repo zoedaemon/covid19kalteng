@@ -2,6 +2,7 @@ package migration
 
 import (
 	"covid19kalteng/covid19"
+	"covid19kalteng/middlewares"
 	"covid19kalteng/models"
 
 	"fmt"
@@ -16,6 +17,7 @@ func Seed() {
 		seedClients()
 		seedRoles()
 		seedUsers()
+		seedEdu()
 	}
 }
 
@@ -25,7 +27,7 @@ func TestSeed() {
 		seedClients()
 		seedRoles()
 		seedUsers()
-
+		seedEdu()
 	}
 }
 
@@ -62,6 +64,11 @@ func seedClients() {
 			Name:   "reporter",
 			Key:    "reactkey",
 			Secret: "reactsecret",
+		},
+		models.Client{
+			Name:   "reporter",
+			Key:    "clientkey",
+			Secret: "clientsecret",
 		},
 	}
 	for _, client := range clients {
@@ -141,5 +148,25 @@ func seedUsers() {
 	}
 	for _, user := range users {
 		user.Create()
+	}
+}
+
+func seedEdu() {
+
+	edus := []models.Edu{
+		models.Edu{
+			Title: "Pencegahan agar Terhindar dari Virus SARS-CoV-2",
+			Description: `
+			<p>menggosok tangan dengan air mengalir dan <b>sabun</b> atau jika tidak ada gunakan hand sanitizer</p>`,
+		},
+		models.Edu{
+			Title: "Penularan wabah Covid19",
+			Description: `
+			<p>penyebaran yang masif....</p>`,
+		},
+	}
+	for _, edu := range edus {
+		edu.Create()
+		middlewares.SubmitKafkaPayload(edu, "faq_create")
 	}
 }

@@ -40,7 +40,7 @@ CREATE TABLE "users" (
     PRIMARY KEY ("id")
 ) WITH (OIDS = FALSE);
 
-CREATE TABLE "edu" (
+CREATE TABLE "edus" (
     "id" bigserial,
     "created_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
     "updated_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
@@ -56,4 +56,4 @@ CREATE TABLE "edu" (
 DROP TABLE IF EXISTS "clients" CASCADE;
 DROP TABLE IF EXISTS "roles" CASCADE;
 DROP TABLE IF EXISTS "users" CASCADE;
-DROP TABLE IF EXISTS "edu" CASCADE;
+DROP TABLE IF EXISTS "edus" CASCADE;
