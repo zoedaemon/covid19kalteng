@@ -36,12 +36,12 @@ development:
     host : smtp.gmail.com
     port : 587
     email : infra.covid19kalteng@gmail.com 
-    password : jakarta2019
+    password : palangka2019
   s3:
     debug_mode: 1
     region: id-tbs
-    access_key: J2BYZXZ43VPZ27V4TCP3
-    secret_key: s0yHeS/eBvjmyshVckbNqVWnTKwhnaP6kYBpFBHk
+    access_key: a
+    secret_key: s
     host: https://bucket.cloud.lintasarta.co.id:8082
     bucket_name: bucket-covid19kalteng
   cron:
