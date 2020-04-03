@@ -40,6 +40,12 @@ func main() {
 				AllowHeaders: []string{"*"},
 			}))
 		}
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Format: `{"time":"${time_rfc3339_nano}", "method":"${method}","uri":"${uri}","status":${status},"error":"${error}","remote_ip":"${remote_ip}","host":"${host}",` +
+				`"latency":${latency},` +
+				`"latency_human":"${latency_human}","bytes_in":${bytes_in},` +
+				`"bytes_out":${bytes_out}, "id":"${id}}"` + "\n",
+		}))
 		e.Logger.Fatal(e.Start(":" + covid19.App.Port))
 		os.Exit(0)
 		break
@@ -69,7 +75,7 @@ func main() {
 
 		dbconf := covid19.App.Config.GetStringMap(fmt.Sprintf("%s.database", covid19.App.ENV))
 		connectionString := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=%s password=%s",
-			dbconf["host"].(string), dbconf["username"].(string), dbconf["table"].(string),
+			dbconf["host"].(string), dbconf["username"].(string), dbconf["db"].(string),
 			dbconf["sslmode"].(string), dbconf["password"].(string),
 		)
 

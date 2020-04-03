@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo"
 )
 
-// LenderGroup group
-func LenderGroup(e *echo.Echo) {
+// ReporterGroup group
+func ReporterGroup(e *echo.Echo) {
 	g := e.Group("/reporter")
 	middlewares.SetClientJWTmiddlewares(g, "reporter")
 

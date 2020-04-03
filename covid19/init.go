@@ -6,6 +6,7 @@ import (
 	"covid19kalteng/components/logs"
 	"covid19kalteng/cron"
 	"covid19kalteng/validator"
+
 	"fmt"
 	"log"
 	"os"
@@ -137,7 +138,7 @@ func (x *Application) DBinit() error {
 		Port:           dbconf["port"].(string),
 		Username:       dbconf["username"].(string),
 		Password:       dbconf["password"].(string),
-		Table:          dbconf["table"].(string),
+		Db:             dbconf["db"].(string),
 		Timezone:       dbconf["timezone"].(string),
 		Maxlifetime:    dbconf["maxlifetime"].(int),
 		IdleConnection: dbconf["idle_conns"].(int),
@@ -155,7 +156,7 @@ func (x *Application) KafkaInit() {
 	kafkaConf := x.Config.GetStringMap(fmt.Sprintf("%s.kafka", x.ENV))
 
 	if kafkaConf["log_verbose"].(bool) {
-		sarama.Logger = log.New(os.Stdout, "[lender kafka] ", log.LstdFlags)
+		sarama.Logger = log.New(os.Stdout, "[kafka covid19] ", log.LstdFlags)
 	}
 
 	x.Kafka.Config = sarama.NewConfig()
