@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
@@ -24,6 +25,7 @@ type CaseFilter struct {
 func CaseList(c echo.Context) error {
 	const LogTag = "CaseList"
 	defer c.Request().Body.Close()
+
 	//get token
 	token := c.Get("user").(*jwt.Token)
 
@@ -34,6 +36,8 @@ func CaseList(c echo.Context) error {
 	locProvMainData := c.QueryParam(locProvMainField)
 	locProvMain := c.QueryParam(locProvField)
 	locKotKabData := c.QueryParam(locKotKabField)
+	startDate := c.QueryParam("start_date")
+	endDate := c.QueryParam("end_date")
 
 	//init models for response
 	var cases []models.Case
@@ -41,6 +45,7 @@ func CaseList(c echo.Context) error {
 	//Pagination Custom Query
 	QPaged := modules.QueryPaged{}
 	QPaged.Init(c)
+
 	//custom query
 	db := covid19.App.DB
 	db = db.Table("cases").
@@ -57,6 +62,18 @@ func CaseList(c echo.Context) error {
 	}
 	if len(locKotKabData) != 0 {
 		db = db.Where(fmt.Sprintf(LocQuery, locKotKabField), "%"+strings.ToLower(locKotKabData)+"%")
+	}
+
+	//filter by date
+	if len(startDate) > 0 {
+		if len(endDate) > 0 {
+			db = db.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+		} else {
+			//GOTCHAS : between startdate now must now + 1 day
+			layout := "2006-01-02"
+			t, _ := time.Parse(layout, startDate)
+			db = db.Where("created_at BETWEEN ? AND ?", startDate, t.AddDate(0, 0, 1))
+		}
 	}
 
 	//generate filter, return db and error
