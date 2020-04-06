@@ -4,11 +4,11 @@ import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
 	"covid19kalteng/modules"
+	"covid19kalteng/modules/date"
 	"covid19kalteng/modules/nlogs"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
@@ -29,15 +29,23 @@ func CaseList(c echo.Context) error {
 	//get token
 	token := c.Get("user").(*jwt.Token)
 
-	// filters
+	//filters locs
 	const locProvMainField = "provinsi_main"
 	const locProvField = "provinsi"
 	const locKotKabField = "kota_kabupaten"
 	locProvMainData := c.QueryParam(locProvMainField)
 	locProvMain := c.QueryParam(locProvField)
 	locKotKabData := c.QueryParam(locKotKabField)
-	startDate := c.QueryParam("start_date")
-	endDate := c.QueryParam("end_date")
+
+	//filters date
+	startDate, err := date.ParseSimple(c.QueryParam("start_date"))
+	if err != nil && err.Error() != "nil" {
+		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "format start_date salah")
+	}
+	endDate, err := date.ParseSimple(c.QueryParam("end_date"))
+	if err != nil && err.Error() != "nil" {
+		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "format end_date salah")
+	}
 
 	//init models for response
 	var cases []models.Case
@@ -65,15 +73,15 @@ func CaseList(c echo.Context) error {
 	}
 
 	//filter by date
-	if len(startDate) > 0 {
-		if len(endDate) > 0 {
-			db = db.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	if !startDate.IsZero() {
+		if !endDate.IsZero() {
+			//GOTCHAS : between startdate now() must now() + 1 day
+			db = db.Where("created_at BETWEEN ? AND ?", startDate, endDate.AddDate(0, 0, 1))
 		} else {
-			//GOTCHAS : between startdate now must now + 1 day
-			layout := "2006-01-02"
-			t, _ := time.Parse(layout, startDate)
-			db = db.Where("created_at BETWEEN ? AND ?", startDate, t.AddDate(0, 0, 1))
+			db = db.Where("created_at BETWEEN ? AND ?", startDate, startDate.AddDate(0, 0, 1))
 		}
+	} else if !endDate.IsZero() {
+		db = db.Where("created_at BETWEEN ? AND ?", endDate, endDate.AddDate(0, 0, 1))
 	}
 
 	//generate filter, return db and error
@@ -99,7 +107,7 @@ func CaseList(c echo.Context) error {
 		nlogs.NLog("warning", LogTag, map[string]interface{}{
 			"message": "empty data cases",
 			"error":   err}, token, "", false)
-		return returnInvalidResponse(http.StatusNoContent, err, "Data Kasus Kosong")
+		return returnInvalidResponse(http.StatusInternalServerError, err, "Data Kasus Kosong")
 	}
 
 	//get result format
