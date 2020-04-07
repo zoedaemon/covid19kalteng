@@ -63,7 +63,7 @@ func ReporterLogin(c echo.Context) error {
 			return returnInvalidResponse(http.StatusUnauthorized, err, "Login tidak valid")
 		}
 
-		token, err = createJwtToken(strconv.FormatUint(lender.ID, 10), "users")
+		token, err = createJwtToken(strconv.FormatUint(lender.ID, 10), "reporter")
 		if err != nil {
 			nlogs.NLog("warning", "ReporterLogin", map[string]interface{}{"message": "error generating token", "error": err}, c.Get("user").(*jwt.Token), "", true)
 

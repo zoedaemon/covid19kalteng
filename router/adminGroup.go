@@ -11,7 +11,7 @@ import (
 // AdminGroup func
 func AdminGroup(e *echo.Echo) {
 	g := e.Group("/admin")
-	middlewares.SetClientJWTmiddlewares(g, "users")
+	middlewares.SetClientJWTmiddlewares(g, "admin")
 
 	// config info
 	g.GET("/info", handlers.AppInfo)

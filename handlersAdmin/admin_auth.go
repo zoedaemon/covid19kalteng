@@ -66,7 +66,7 @@ func AdminLogin(c echo.Context) error {
 			return returnInvalidResponse(http.StatusUnauthorized, err, "Login tidak valid")
 		}
 
-		token, err = createJwtToken(strconv.FormatUint(user.ID, 10), "users")
+		token, err = createJwtToken(strconv.FormatUint(user.ID, 10), "admin")
 		if err != nil {
 			nlogs.NLog("error", "AdminLogin", map[string]interface{}{"message": "error generating token", "detail": err}, c.Get("user").(*jwt.Token), "", true)
 

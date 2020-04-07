@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"covid19kalteng/covid19"
+	"covid19kalteng/logic/cases"
 	"covid19kalteng/models"
 	"covid19kalteng/modules"
 	"covid19kalteng/modules/date"
@@ -113,4 +114,20 @@ func CaseList(c echo.Context) error {
 	//get result format
 	result := QPaged.GetPage(cases)
 	return c.JSON(http.StatusOK, result)
+}
+
+//CaseNew new covid case
+func CaseNew(c echo.Context) error {
+	// defer c.Request().Body.Close()
+
+	//TODO: fix this generals function validatePermission and others
+	err := validatePermission(c, "cases_new")
+	if err != nil {
+		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+	}
+	_, info := cases.New(c, nil)
+
+	defer c.Request().Body.Close()
+
+	return info
 }

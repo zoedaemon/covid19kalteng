@@ -55,6 +55,7 @@ func (n *NorthstarLib) SubmitKafkaLog(l interface{}, model string) (err error) {
 
 	jMarshal, _ := json.Marshal(build)
 
+	//CONCERN: for performance it's safely shared among goroutine
 	kafkaProducer, err := sarama.NewAsyncProducer([]string{n.Host}, n.SaramaConfig)
 	if err != nil {
 		return err
