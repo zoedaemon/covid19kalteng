@@ -50,6 +50,32 @@ CREATE TABLE "edus" (
     PRIMARY KEY ("id")
 ) WITH (OIDS = FALSE);
 
+
+CREATE TABLE "cases" (
+    "id" bigserial,
+    "created_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" timestamptz,
+    "location" jsonb DEFAULT '{}',
+    "data_detail" jsonb DEFAULT '[]',
+    PRIMARY KEY ("id")
+) WITH (OIDS = FALSE);
+
+
+CREATE TABLE "data_definitions" (
+    "id" bigserial,
+    "created_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" timestamptz,
+    "key" varchar(255) NOT NULL,
+    "name_total" varchar(255),
+    "name_per_day" varchar(255),
+    "stand_for" varchar(255) ,
+    PRIMARY KEY ("id")
+) WITH (OIDS = FALSE);
+
+
+
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
 

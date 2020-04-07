@@ -21,4 +21,8 @@ func ClientGroup(e *echo.Echo) {
 
 	//edukasi
 	g.GET("/educations", handlers.EduList)
+
+	//Cases
+	g.GET("/cases", handlers.CaseList)
+
 }
