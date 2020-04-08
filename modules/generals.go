@@ -3,10 +3,10 @@ package modules
 import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/modules/nlogs"
+	"encoding/json"
 	"math/rand"
 
 	"fmt"
-
 	"strings"
 	"time"
 
@@ -78,7 +78,6 @@ func ReturnInvalidResponse(httpcode int, details interface{}, message string) er
 		"message": message,
 		"details": details,
 	}
-
 	return echo.NewHTTPError(httpcode, responseBody)
 }
 
@@ -168,4 +167,15 @@ func validatePermission(c echo.Context, permission string) error {
 	nlogs.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
 
 	return fmt.Errorf("Permission Denied")
+}
+
+//ParseError custom errors detail
+type ParseError struct {
+	Info interface{}
+}
+
+//Error must implement this Error func
+func (e *ParseError) Error() string {
+	dat, _ := json.Marshal(e.Info)
+	return string(dat)
 }
