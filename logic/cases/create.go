@@ -38,16 +38,21 @@ func New(c echo.Context, data interface{}) (interface{}, error) {
 	date, err := date.ParseSimple(casePayload.CreatedAt)
 	if err != nil && err.Error() != "nil" {
 		return nil, ReturnInvalidResponse(http.StatusUnprocessableEntity, err, "format end_date salah")
-
 	}
 	cases.CreatedAt = date
 	cases.UpdatedAt = date
 
 	//process jsonb data
-	ProcessCase(&cases)
+	err = ProcessCase(&cases, date)
+	if err != nil {
+		return nil, ReturnInvalidResponse(http.StatusInternalServerError, err, "terjadi kesalahan data_detail")
+	}
 
 	//store new row
 	err = cases.Create()
+	if err != nil {
+		return nil, ReturnInvalidResponse(http.StatusInternalServerError, err, "terjadi kesalahan dalam menyimpan data")
+	}
 
 	//BUG: poor performance because kafka use new connection ? performance drop to 500ms (latency)
 	//log change

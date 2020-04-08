@@ -118,16 +118,13 @@ func CaseList(c echo.Context) error {
 
 //CaseNew new covid case
 func CaseNew(c echo.Context) error {
-	// defer c.Request().Body.Close()
+	defer c.Request().Body.Close()
 
 	//TODO: fix this generals function validatePermission and others
 	err := validatePermission(c, "cases_new")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return returnInvalidResponse(http.StatusForbidden, err, err.Error())
 	}
 	_, info := cases.New(c, nil)
-
-	defer c.Request().Body.Close()
-
 	return info
 }
