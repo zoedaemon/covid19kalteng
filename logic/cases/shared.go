@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"encoding/json"
-	"errors"
 	"log"
 	"time"
 
@@ -77,6 +76,7 @@ func ProcessCase(cases *models.Case, date time.Time) error {
 	db = db.Order("created_at DESC LIMIT 1")
 
 	//exec
+	//BUGS "Record Not Found"
 	err := db.Find(&dataDetailFoundJSON).Error
 	if err != nil {
 		log.Println("error : ", err)
@@ -88,49 +88,49 @@ func ProcessCase(cases *models.Case, date time.Time) error {
 	json.Unmarshal(dataDetailFoundJSON.DataDetail.RawMessage, &dataDetailFound)
 
 	//dataDetailFoundJSON.DataDetail.RawMessage, dataDetailFound)
-	if len(dataDetailFound) <= 0 {
-		return errors.New("data_detail tidak boleh kosong")
-	}
+	if len(dataDetailFound) > 0 {
 
-	for i, dat := range dataDetails {
-		//get key/caption
-		MainCaption := SampleKeyMapped[dat["key"].(string)]
-		HarianCaption := MainCaption + " Harian"
+		for i, dat := range dataDetails {
+			//get key/caption
+			MainCaption := SampleKeyMapped[dat["key"].(string)]
+			HarianCaption := MainCaption + " Harian"
 
-		//latest total
-		//must valid float (must handle with switch type, if not you would throws panic)
-		Total, ok := dat[MainCaption].(float64)
-		if !ok {
-			return &ParseError{Info: fmt.Sprintf("field %s harus angka", MainCaption)}
+			//latest total
+			//must valid float (must handle with switch type, if not you would throws panic)
+			Total, ok := dat[MainCaption].(float64)
+			if !ok {
+				return &ParseError{Info: fmt.Sprintf("field %s harus angka", MainCaption)}
+			}
+			log.Printf(">>>>> %s : %s\n", MainCaption, HarianCaption)
+
+			//get Last total from db
+			//CONCERN: this [i] might be a problem if from payload not sequenced as latest row
+			if _, ok := dataDetailFound[i][MainCaption]; !ok {
+				return &ParseError{Info: "fields data_detail tidak terurut sesuai standar"}
+			}
+			LastTotal := dataDetailFound[i][MainCaption].(float64)
+
+			//calc new day changes (increment or decrement from this diff)
+			TodayChange := Total - LastTotal
+
+			dat[HarianCaption] = TodayChange
+			log.Printf(">>>>> ProcessCase(%d) Last Total = %f; New Total = %f; Today = %f\n", i, Total,
+				LastTotal, TodayChange)
+
+			//append new updated object
+			newData = append(newData, dat)
 		}
-		log.Printf(">>>>> %s : %s\n", MainCaption, HarianCaption)
 
-		//get Last total from db
-		//CONCERN: this [i] might be a problem if from payload not sequenced as latest row
-		if _, ok := dataDetailFound[i][MainCaption]; !ok {
-			return &ParseError{Info: "fields data_detail tidak terurut sesuai standar"}
+		//raw []byte
+		converted, err := json.Marshal(newData)
+		if err != nil {
+			return err
 		}
-		LastTotal := dataDetailFound[i][MainCaption].(float64)
 
-		//calc new day changes (increment or decrement from this diff)
-		TodayChange := Total - LastTotal
+		//replace old value
+		cases.DataDetail.RawMessage = converted
 
-		dat[HarianCaption] = TodayChange
-		log.Printf(">>>>> ProcessCase(%d) Last Total = %f; New Total = %f; Today = %f\n", i, Total,
-			LastTotal, TodayChange)
-
-		//append new updated object
-		newData = append(newData, dat)
 	}
-
-	//raw []byte
-	converted, err := json.Marshal(newData)
-	if err != nil {
-		return err
-	}
-
-	//replace old value
-	cases.DataDetail.RawMessage = converted
 
 	return nil
 }
