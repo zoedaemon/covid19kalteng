@@ -48,10 +48,24 @@ type (
 		DeletedAt *time.Time `json:"deleted_at" sql:"index"`
 
 		//field helper for rows filter, i.e. pagination
-		Rows  int
-		Page  int
-		Order []string
-		Sort  []string
+		Rows  int      `json:"-"`
+		Page  int      `json:"-"`
+		Order []string `json:"-"`
+		Sort  []string `json:"-"`
+
+		//BaseModules
+	}
+
+	//BaseModules TODO acts like middleware, execute sequenced
+	BaseModules struct {
+		//Pagination Filter
+		AfterCreate []BaseInterfaceAfterCreate
+	}
+
+	//BaseInterfaceAfterCreate not must exist or optionally implemented
+	BaseInterfaceAfterCreate interface {
+		BeforeSave(data interface{})
+		AfterSave(data interface{})
 	}
 
 	// DBFunc gorm trx function
@@ -379,15 +393,16 @@ func orderSortQuery(query *gorm.DB, order []string, sort []string) *gorm.DB {
 	return query
 }
 
+//SetPaginationFilter set default filter for pagination
 func (b *BaseModel) SetPaginationFilter(page int, rows int, orders []string, sorts []string) {
-
+	//manual assignments
 	b.Page = page
 	b.Rows = rows
 	b.Order = orders
 	b.Sort = sorts
-
 }
 
+//PagedFindFilter simplified
 func (b *BaseModel) PagedFindFilter(i interface{}, filter interface{}, allfieldcondition ...string) (result PagedFindResult, err error) {
 	return PagedFindFilter(i, b.Page, b.Rows, b.Order, b.Sort, filter)
 }
