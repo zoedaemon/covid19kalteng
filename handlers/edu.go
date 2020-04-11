@@ -1,14 +1,10 @@
 package handlers
 
 import (
-	"covid19kalteng/covid19"
 	"covid19kalteng/models"
-	"covid19kalteng/modules/nlogs"
+	"covid19kalteng/modules"
 	"net/http"
-	"strconv"
-	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
@@ -24,24 +20,20 @@ func EduList(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	// pagination parameters
-	rows, err := strconv.Atoi(c.QueryParam("rows"))
-	page, err := strconv.Atoi(c.QueryParam("page"))
-	orderby := strings.Split(c.QueryParam("orderby"), ",")
-	sort := strings.Split(c.QueryParam("sort"), ",")
-
-	// filters
+	edu := models.Edu{}
+	modules.SetPaginationFilter(&edu.BaseModel, c)
+	// custom filters
 	title := c.QueryParam("title")
 
 	//find rows by filter
-	edu := models.Edu{}
-	result, err := edu.FindPaged(page, rows, orderby, sort, &Filter{
+	result, err := edu.FindPaged(&Filter{
 		Title: title,
 	})
 	if err != nil {
-		nlogs.NLog("warning", LogTag, map[string]interface{}{
-			NLOGMSG:   "error get Education list",
-			NLOGERR:   err,
-			NLOGQUERY: covid19.App.DB.QueryExpr()}, c.Get("user").(*jwt.Token), "", true)
+		// nlogs.NLog("warning", LogTag, map[string]interface{}{
+		// 	NLOGMSG:   "error get Education list",
+		// 	NLOGERR:   err,
+		// 	NLOGQUERY: covid19.App.DB.QueryExpr()}, c.Get("user").(*jwt.Token), "", true)
 
 		return returnInvalidResponse(http.StatusNoContent, err, "data edukasi kosong")
 	}

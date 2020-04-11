@@ -40,10 +40,18 @@ type (
 
 	// BaseModel will be used as foundation of all models
 	BaseModel struct {
+
+		//main basemodel and stored in db too
 		ID        uint64     `json:"id" gorm:"primary_key"`
 		CreatedAt time.Time  `json:"created_at"`
 		UpdatedAt time.Time  `json:"updated_at"`
 		DeletedAt *time.Time `json:"deleted_at" sql:"index"`
+
+		//field helper for rows filter, i.e. pagination
+		Rows  int
+		Page  int
+		Order []string
+		Sort  []string
 	}
 
 	// DBFunc gorm trx function
@@ -369,4 +377,17 @@ func orderSortQuery(query *gorm.DB, order []string, sort []string) *gorm.DB {
 	}
 
 	return query
+}
+
+func (b *BaseModel) SetPaginationFilter(page int, rows int, orders []string, sorts []string) {
+
+	b.Page = page
+	b.Rows = rows
+	b.Order = orders
+	b.Sort = sorts
+
+}
+
+func (b *BaseModel) PagedFindFilter(i interface{}, filter interface{}, allfieldcondition ...string) (result PagedFindResult, err error) {
+	return PagedFindFilter(i, b.Page, b.Rows, b.Order, b.Sort, filter)
 }
