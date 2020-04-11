@@ -2,7 +2,6 @@ package basemodel
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"reflect"
 	"strings"
@@ -49,27 +48,24 @@ type (
 		DeletedAt *time.Time `json:"deleted_at" sql:"index"`
 
 		//field helper for rows filter, i.e. pagination
-		Rows  int      `json:"-" gorm:"-"`
-		Page  int      `json:"-" gorm:"-"`
-		Order []string `json:"-" gorm:"-"`
-		Sort  []string `json:"-" gorm:"-"`
+		Rows  int      `json:"-"`
+		Page  int      `json:"-"`
+		Order []string `json:"-"`
+		Sort  []string `json:"-"`
 
 		//BaseModules
 	}
 
-	//BaseModulesStruct acts like middleware, execute sequenced and globally effected to models implemented basemodel
-	BaseModulesStruct struct {
+	//BaseModules TODO acts like middleware, execute sequenced
+	BaseModules struct {
 		//Pagination Filter
-		AfterCreates []BaseInterfaceAfterCreate
+		AfterCreate []BaseInterfaceAfterCreate
 	}
 
 	//BaseInterfaceAfterCreate not must exist or optionally implemented
 	BaseInterfaceAfterCreate interface {
-		AfterCreate(data_before interface{}, data_after interface{}) error
-	}
-
-	BaseInterfaceBeforeCreate interface {
-		BeforeCreate(data interface{}) error
+		BeforeSave(data interface{})
+		AfterSave(data interface{})
 	}
 
 	// DBFunc gorm trx function
@@ -95,9 +91,6 @@ type (
 
 // DB is a connected db instance
 var DB *gorm.DB
-
-//BaseModules modules implemented by use can injected here -- acts like middleware
-var BaseModules BaseModulesStruct
 
 // Start set basemodel config
 func Start(conf DBConfig) {
@@ -159,11 +152,6 @@ func Create(i interface{}) error {
 			tx.Rollback()
 			return err
 		}
-
-		for _, fm := range BaseModules.AfterCreates {
-			//nil coz no new data
-			fm.AfterCreate(nil, i)
-		}
 		return err
 	})
 }
@@ -178,8 +166,6 @@ func Save(i interface{}) error {
 			tx.Rollback()
 			return err
 		}
-
-		//TODO: implement AfterSave with data before and after changed
 		return err
 	})
 }
@@ -419,12 +405,4 @@ func (b *BaseModel) SetPaginationFilter(page int, rows int, orders []string, sor
 //PagedFindFilter simplified
 func (b *BaseModel) PagedFindFilter(i interface{}, filter interface{}, allfieldcondition ...string) (result PagedFindResult, err error) {
 	return PagedFindFilter(i, b.Page, b.Rows, b.Order, b.Sort, filter)
-}
-
-func (b *BaseModulesStruct) AddModules(userClass interface{}) {
-	_, ok := interface{}(userClass).(BaseInterfaceAfterCreate)
-	if ok {
-		b.AfterCreates = append(b.AfterCreates, userClass.(BaseInterfaceAfterCreate))
-		log.Println(">>>> Append Modules AfterCreate")
-	}
 }
