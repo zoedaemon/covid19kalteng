@@ -1,8 +1,11 @@
-package handlers
+package modules
 
 import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/modules/nlogs"
+	"encoding/json"
+	"math/rand"
+
 	"fmt"
 	"strings"
 	"time"
@@ -21,6 +24,8 @@ const (
 	NLOGQUERY = "query"
 )
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
 type (
 	// JWTclaims jwtclaims
 	JWTclaims struct {
@@ -32,7 +37,7 @@ type (
 )
 
 // general function to validate all kind of api request payload / body
-func validateRequestPayload(c echo.Context, rules govalidator.MapData, data interface{}) (i interface{}) {
+func ValidateRequestPayload(c echo.Context, rules govalidator.MapData, data interface{}) (i interface{}) {
 	opts := govalidator.Options{
 		Request: c.Request(),
 		Data:    data,
@@ -51,7 +56,7 @@ func validateRequestPayload(c echo.Context, rules govalidator.MapData, data inte
 }
 
 // general function to validate all kind of api request url query
-func validateRequestQuery(c echo.Context, rules govalidator.MapData) (i interface{}) {
+func ValidateRequestQuery(c echo.Context, rules govalidator.MapData) (i interface{}) {
 	opts := govalidator.Options{
 		Request: c.Request(),
 		Rules:   rules,
@@ -68,12 +73,11 @@ func validateRequestQuery(c echo.Context, rules govalidator.MapData) (i interfac
 	return i
 }
 
-func returnInvalidResponse(httpcode int, details interface{}, message string) error {
+func ReturnInvalidResponse(httpcode int, details interface{}, message string) error {
 	responseBody := map[string]interface{}{
 		"message": message,
 		"details": details,
 	}
-
 	return echo.NewHTTPError(httpcode, responseBody)
 }
 
@@ -88,10 +92,11 @@ func createJwtToken(id string, group string) (string, error) {
 	var permModel []PermModel
 	var db = covid19.App.DB
 	switch group {
-	case "admin", "reporter":
+	case "users":
 		err := db.Table("roles").
-			Select("TRIM(UNNEST(roles.permissions)) as permissions").
+			Select("DISTINCT TRIM(UNNEST(roles.permissions)) as permissions").
 			Joins("INNER JOIN users u ON roles.id IN (SELECT UNNEST(u.roles))").
+			Where("roles.status = ?", "active").
 			Where("u.id = ?", id).Scan(&permModel).Error
 		if err != nil {
 			return "", err
@@ -121,10 +126,20 @@ func createJwtToken(id string, group string) (string, error) {
 	return token, nil
 }
 
+// RandString random string alphanumeric. parameter length
+func RandString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
 func customSplit(str string, separator string) []string {
 	split := strings.Split(str, separator)
 	if len(split) == 1 {
 		if split[0] == "" {
+
 			split = []string{}
 		}
 	}
@@ -152,4 +167,15 @@ func validatePermission(c echo.Context, permission string) error {
 	nlogs.NLog("warning", "validatePermission", map[string]interface{}{"message": fmt.Sprintf("user dont have permission %v", permission)}, user.(*jwt.Token), "", false)
 
 	return fmt.Errorf("Permission Denied")
+}
+
+//ParseError custom errors detail
+type ParseError struct {
+	Info interface{}
+}
+
+//Error must implement this Error func
+func (e *ParseError) Error() string {
+	dat, _ := json.Marshal(e.Info)
+	return string(dat)
 }

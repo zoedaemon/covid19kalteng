@@ -40,10 +40,32 @@ type (
 
 	// BaseModel will be used as foundation of all models
 	BaseModel struct {
+
+		//main basemodel and stored in db too
 		ID        uint64     `json:"id" gorm:"primary_key"`
 		CreatedAt time.Time  `json:"created_at"`
 		UpdatedAt time.Time  `json:"updated_at"`
 		DeletedAt *time.Time `json:"deleted_at" sql:"index"`
+
+		//field helper for rows filter, i.e. pagination
+		Rows  int      `json:"-" gorm:"-"`
+		Page  int      `json:"-" gorm:"-"`
+		Order []string `json:"-" gorm:"-"`
+		Sort  []string `json:"-" gorm:"-"`
+
+		//BaseModules
+	}
+
+	//BaseModules TODO acts like middleware, execute sequenced
+	BaseModules struct {
+		//Pagination Filter
+		AfterCreate []BaseInterfaceAfterCreate
+	}
+
+	//BaseInterfaceAfterCreate not must exist or optionally implemented
+	BaseInterfaceAfterCreate interface {
+		BeforeSave(data interface{})
+		AfterSave(data interface{})
 	}
 
 	// DBFunc gorm trx function
@@ -369,4 +391,18 @@ func orderSortQuery(query *gorm.DB, order []string, sort []string) *gorm.DB {
 	}
 
 	return query
+}
+
+//SetPaginationFilter set default filter for pagination
+func (b *BaseModel) SetPaginationFilter(page int, rows int, orders []string, sorts []string) {
+	//manual assignments
+	b.Page = page
+	b.Rows = rows
+	b.Order = orders
+	b.Sort = sorts
+}
+
+//PagedFindFilter simplified
+func (b *BaseModel) PagedFindFilter(i interface{}, filter interface{}, allfieldcondition ...string) (result PagedFindResult, err error) {
+	return PagedFindFilter(i, b.Page, b.Rows, b.Order, b.Sort, filter)
 }

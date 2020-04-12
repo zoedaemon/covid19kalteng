@@ -42,8 +42,8 @@ func (model *Edu) FindSingle(filter interface{}) error {
 }
 
 // PagedFindFilter func
-func (model *Edu) FindPaged(page int, rows int, orderby []string, sort []string, filter interface{}) (basemodel.PagedFindResult, error) {
+func (base *Edu) FindPaged(filter interface{}) (basemodel.PagedFindResult, error) {
 	edu := []Edu{}
 
-	return basemodel.PagedFindFilter(&edu, page, rows, orderby, sort, filter)
+	return base.PagedFindFilter(&edu, filter)
 }

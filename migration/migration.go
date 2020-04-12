@@ -39,6 +39,7 @@ func Truncate(tableList []string) (err error) {
 				"roles",
 				"users",
 				"edus",
+				"cases",
 			}
 		}
 
@@ -90,7 +91,7 @@ func seedRoles() {
 			Description: "Ops",
 			System:      "Core",
 			Permissions: pq.StringArray{
-				"core_create_client", "core_view_image", "core_role_list", "core_role_details", "core_role_new", "core_role_patch", "core_role_range", "core_permission_list", "core_user_list", "core_user_details", "core_user_new", "core_user_patch"},
+				"core_create_client", "core_view_image", "core_role_list", "core_role_details", "core_role_new", "core_role_patch", "core_role_range", "core_permission_list", "core_user_list", "core_user_details", "core_user_new", "core_user_patch", "cases_new"},
 		},
 		models.Roles{
 			Name:        "Reporter",
@@ -98,7 +99,7 @@ func seedRoles() {
 			Description: "ini untuk Reporter",
 			System:      "Dashboard",
 			Permissions: pq.StringArray{
-				"reporter_profile", "reporter_profile_edit"},
+				"reporter_profile", "reporter_profile_edit", "cases_new"},
 		},
 	}
 	for _, role := range roles {
