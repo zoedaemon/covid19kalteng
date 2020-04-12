@@ -48,10 +48,10 @@ type (
 		DeletedAt *time.Time `json:"deleted_at" sql:"index"`
 
 		//field helper for rows filter, i.e. pagination
-		Rows  int      `json:"-"`
-		Page  int      `json:"-"`
-		Order []string `json:"-"`
-		Sort  []string `json:"-"`
+		Rows  int      `json:"-" gorm:"-"`
+		Page  int      `json:"-" gorm:"-"`
+		Order []string `json:"-" gorm:"-"`
+		Sort  []string `json:"-" gorm:"-"`
 
 		//BaseModules
 	}
