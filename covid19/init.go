@@ -94,9 +94,6 @@ func (x *Application) loadENV() {
 	default:
 		x.ENV = "development"
 		break
-	case "development":
-		x.ENV = "development"
-		break
 	case "staging":
 		x.ENV = "staging"
 		break
