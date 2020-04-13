@@ -2,6 +2,7 @@ package handlersAdmin
 
 import (
 	"covid19kalteng/models"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/nlogs"
 
 	"fmt"
@@ -28,7 +29,7 @@ func AdminProfile(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "AdminProfile", map[string]interface{}{"message": fmt.Sprintf("user id %v profile not found", userID), "error": err}, c.Get("user").(*jwt.Token), "", true)
 
-		return returnInvalidResponse(http.StatusForbidden, err, "Tidak memiliki akses.")
+		return ReturnInvalidResponse(http.StatusForbidden, err, "Tidak memiliki akses.")
 	}
 
 	return c.JSON(http.StatusOK, userModel)
@@ -50,7 +51,7 @@ func UserFirstLoginChangePassword(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": fmt.Sprintf("user id %v profile not found", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusForbidden, err, "Tidak memiliki akses.")
+		return ReturnInvalidResponse(http.StatusForbidden, err, "Tidak memiliki akses.")
 	}
 	origin = userModel
 
@@ -63,11 +64,11 @@ func UserFirstLoginChangePassword(c echo.Context) error {
 			"password": []string{"required"},
 		}
 
-		validate := validateRequestPayload(c, payloadRules, &pass)
+		validate := ValidateRequestPayload(c, payloadRules, &pass)
 		if validate != nil {
 			nlogs.NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-			return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+			return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 		}
 		userModel.FirstLoginChangePassword(pass.Pass)
 		nlogs.NLog("info", "UserFirstLoginChangePassword", map[string]interface{}{"message": "changed password"}, c.Get("user").(*jwt.Token), "", false)
@@ -76,6 +77,7 @@ func UserFirstLoginChangePassword(c echo.Context) error {
 
 		return c.JSON(http.StatusOK, "Password anda telah diganti.")
 	}
+
 	nlogs.NLog("warning", "UserFirstLoginChangePassword", map[string]interface{}{"message": "cant change password, not first login"}, c.Get("user").(*jwt.Token), "", false)
 
 	return c.JSON(http.StatusUnauthorized, "Akun anda bukan akun baru.")

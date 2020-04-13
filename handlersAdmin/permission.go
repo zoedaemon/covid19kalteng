@@ -2,6 +2,8 @@ package handlersAdmin
 
 import (
 	"covid19kalteng/covid19"
+	. "covid19kalteng/modules"
+
 	"fmt"
 	"net/http"
 
@@ -11,9 +13,9 @@ import (
 // PermissionList get all defined permissions
 func PermissionList(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_permission_list")
+	err := ValidatePermission(c, "core_permission_list")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	permissions := covid19.App.Permission.GetStringMap(fmt.Sprintf("%s", "permissions"))

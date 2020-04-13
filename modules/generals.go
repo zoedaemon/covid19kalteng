@@ -136,7 +136,7 @@ func RandString(n int) string {
 	return string(b)
 }
 
-func customSplit(str string, separator string) []string {
+func CustomSplit(str string, separator string) []string {
 	split := strings.Split(str, separator)
 	if len(split) == 1 {
 		if split[0] == "" {
