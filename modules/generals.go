@@ -24,6 +24,10 @@ const (
 	NLOGQUERY = "query"
 )
 
+const (
+	ERR_MSG_INVALID_LOGIN = "Login tidak valid"
+)
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 type (

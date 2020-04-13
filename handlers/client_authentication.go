@@ -22,12 +22,12 @@ func ClientLogin(c echo.Context) error {
 
 	data, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Basic "))
 	if err != nil {
-		return ReturnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "", ERR_MSG_INVALID_LOGIN)
 	}
 
 	auth := strings.Split(string(data), ":")
 	if len(auth) < 2 {
-		return ReturnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "", ERR_MSG_INVALID_LOGIN)
 	}
 	type Login struct {
 		Key    string `json:"key"`
@@ -42,7 +42,7 @@ func ClientLogin(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "ClientLogin", map[string]interface{}{"message": "client login failed"}, nil, "", true)
 
-		return ReturnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "", ERR_MSG_INVALID_LOGIN)
 	}
 
 	token, err := CreateJwtToken(strconv.FormatUint(client.ID, 10), "client")
