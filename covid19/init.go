@@ -4,8 +4,8 @@ import (
 	"covid19kalteng/components"
 	"covid19kalteng/components/basemodel"
 	"covid19kalteng/components/logs"
+	"covid19kalteng/components/validator"
 	"covid19kalteng/cron"
-	"covid19kalteng/validator"
 
 	"fmt"
 	"log"
