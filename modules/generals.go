@@ -36,7 +36,7 @@ type (
 	}
 )
 
-// general function to validate all kind of api request payload / body
+//ValidateRequestPayload general function to validate all kind of api request payload / body
 func ValidateRequestPayload(c echo.Context, rules govalidator.MapData, data interface{}) (i interface{}) {
 	opts := govalidator.Options{
 		Request: c.Request(),
@@ -55,7 +55,7 @@ func ValidateRequestPayload(c echo.Context, rules govalidator.MapData, data inte
 	return i
 }
 
-// general function to validate all kind of api request url query
+//ValidateRequestQuery general function to validate all kind of api request url query
 func ValidateRequestQuery(c echo.Context, rules govalidator.MapData) (i interface{}) {
 	opts := govalidator.Options{
 		Request: c.Request(),
@@ -73,6 +73,7 @@ func ValidateRequestQuery(c echo.Context, rules govalidator.MapData) (i interfac
 	return i
 }
 
+//ReturnInvalidResponse custom error; but use &ParseError{...} if internal error before return this
 func ReturnInvalidResponse(httpcode int, details interface{}, message string) error {
 	responseBody := map[string]interface{}{
 		"message": message,
@@ -81,8 +82,8 @@ func ReturnInvalidResponse(httpcode int, details interface{}, message string) er
 	return echo.NewHTTPError(httpcode, responseBody)
 }
 
-// self explanation
-func createJwtToken(id string, group string) (string, error) {
+//CreateJwtToken new JWT token by group
+func CreateJwtToken(id string, group string) (string, error) {
 	jwtConf := covid19.App.Config.GetStringMap(fmt.Sprintf("%s.jwt", covid19.App.ENV))
 
 	type PermModel struct {
@@ -147,7 +148,8 @@ func customSplit(str string, separator string) []string {
 	return split
 }
 
-func validatePermission(c echo.Context, permission string) error {
+//ValidatePermission for users (admin and reporter)
+func ValidatePermission(c echo.Context, permission string) error {
 	user := c.Get("user")
 	token := user.(*jwt.Token)
 

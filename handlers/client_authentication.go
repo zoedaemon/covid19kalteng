@@ -3,6 +3,7 @@ package handlers
 import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/nlogs"
 
 	"encoding/base64"
@@ -21,12 +22,12 @@ func ClientLogin(c echo.Context) error {
 
 	data, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Basic "))
 	if err != nil {
-		return returnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
 	}
 
 	auth := strings.Split(string(data), ":")
 	if len(auth) < 2 {
-		return returnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
 	}
 	type Login struct {
 		Key    string `json:"key"`
@@ -41,14 +42,14 @@ func ClientLogin(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "ClientLogin", map[string]interface{}{"message": "client login failed"}, nil, "", true)
 
-		return returnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "", "Login tidak valid")
 	}
 
-	token, err := createJwtToken(strconv.FormatUint(client.ID, 10), "client")
+	token, err := CreateJwtToken(strconv.FormatUint(client.ID, 10), "client")
 	if err != nil {
 		nlogs.NLog("warning", "ClientLogin", map[string]interface{}{"message": "fail creating client token"}, nil, "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, "Terjadi kesalahan")
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, "Terjadi kesalahan")
 	}
 
 	jwtConf := covid19.App.Config.GetStringMap(fmt.Sprintf("%s.jwt", covid19.App.ENV))

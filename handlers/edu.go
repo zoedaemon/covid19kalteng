@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"covid19kalteng/models"
-	"covid19kalteng/modules"
+	. "covid19kalteng/modules"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -11,17 +11,16 @@ import (
 // EduList get all bank list
 func EduList(c echo.Context) error {
 
+	defer c.Request().Body.Close()
 	const LogTag = "EduList"
 
 	type Filter struct {
 		Title string `json:"title" condition:"LIKE"`
 	}
 
-	defer c.Request().Body.Close()
-
 	// pagination parameters
 	edu := models.Edu{}
-	modules.SetPaginationFilter(&edu.BaseModel, c)
+	SetPaginationFilter(&edu.BaseModel, c)
 	// custom filters
 	title := c.QueryParam("title")
 
@@ -35,7 +34,7 @@ func EduList(c echo.Context) error {
 		// 	NLOGERR:   err,
 		// 	NLOGQUERY: covid19.App.DB.QueryExpr()}, c.Get("user").(*jwt.Token), "", true)
 
-		return returnInvalidResponse(http.StatusNoContent, err, "data edukasi kosong")
+		return ReturnInvalidResponse(http.StatusNoContent, err, "data edukasi kosong")
 	}
 
 	return c.JSON(http.StatusOK, result)
