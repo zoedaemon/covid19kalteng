@@ -40,6 +40,7 @@ require (
 	github.com/pressly/goose v2.6.0+incompatible
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/robfig/cron v1.2.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cast v1.3.1
