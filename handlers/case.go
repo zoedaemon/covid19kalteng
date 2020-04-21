@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"covid19kalteng/covid19"
 	"covid19kalteng/logic/cases"
 	"covid19kalteng/models"
 	. "covid19kalteng/modules"
 	"covid19kalteng/modules/date"
 	"covid19kalteng/modules/nlogs"
+	"covid19kalteng/modules/utils"
 	"fmt"
 	"net/http"
 	"strings"
@@ -22,7 +22,7 @@ type CaseFilter struct {
 	DataDetail string `json:"data_detail" condition:"LIKE,optional"`
 }
 
-// CaseList get all bank list
+//CaseList get all bank list
 func CaseList(c echo.Context) error {
 	const LogTag = "CaseList"
 	defer c.Request().Body.Close()
@@ -56,7 +56,7 @@ func CaseList(c echo.Context) error {
 	QPaged.Init(c)
 
 	//custom query
-	db := covid19.App.DB
+	db := utils.GetApp(c).DB
 	db = db.Table("cases").
 		Select("*")
 	// Joins("INNER JOIN banks b ON products.id IN (SELECT UNNEST(b.products)) ").
@@ -73,16 +73,18 @@ func CaseList(c echo.Context) error {
 		db = db.Where(fmt.Sprintf(LocQuery, locKotKabField), "%"+strings.ToLower(locKotKabData)+"%")
 	}
 
+	//default format for filter
+	const beetweenCondition = "created_at BETWEEN ? AND ?"
 	//filter by date
 	if !startDate.IsZero() {
 		if !endDate.IsZero() {
 			//GOTCHAS : between startdate now() must now() + 1 day
-			db = db.Where("created_at BETWEEN ? AND ?", startDate, endDate.AddDate(0, 0, 1))
+			db = db.Where(beetweenCondition, startDate, endDate.AddDate(0, 0, 1))
 		} else {
-			db = db.Where("created_at BETWEEN ? AND ?", startDate, startDate.AddDate(0, 0, 1))
+			db = db.Where(beetweenCondition, startDate, startDate.AddDate(0, 0, 1))
 		}
 	} else if !endDate.IsZero() {
-		db = db.Where("created_at BETWEEN ? AND ?", endDate, endDate.AddDate(0, 0, 1))
+		db = db.Where(beetweenCondition, endDate, endDate.AddDate(0, 0, 1))
 	}
 
 	//generate filter, return db and error
