@@ -97,7 +97,7 @@ func CreateJwtToken(id string, group string) (string, error) {
 	var permModel []PermModel
 	var db = covid19.App.DB
 	switch group {
-	case "users":
+	case "admin", "reporter":
 		err := db.Table("roles").
 			Select("DISTINCT TRIM(UNNEST(roles.permissions)) as permissions").
 			Joins("INNER JOIN users u ON roles.id IN (SELECT UNNEST(u.roles))").
