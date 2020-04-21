@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/pressly/goose"
 )
@@ -32,7 +33,7 @@ func main() {
 		flags.Usage()
 		break
 	case "run":
-		e := router.NewRouter()
+		e := router.NewInstance()
 		if covid19.App.Config.GetBool("react_cors") {
 			e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 				AllowOrigins: []string{"*"},
@@ -46,6 +47,21 @@ func main() {
 				`"latency_human":"${latency_human}","bytes_in":${bytes_in},` +
 				`"bytes_out":${bytes_out}, "id":"${id}}"` + "\n",
 		}))
+
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Format: `{"time":"${time_rfc3339_nano}", "method":"${method}","uri":"${uri}","status":${status},"error":"${error}","remote_ip":"${remote_ip}","host":"${host}",` +
+				`"latency":${latency},` +
+				`"latency_human":"${latency_human}","bytes_in":${bytes_in},` +
+				`"bytes_out":${bytes_out}, "id":"${id}}"` + "\n",
+		}))
+
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				c.Set("app", covid19.App)
+				return next(c)
+			}
+		})
+
 		e.Logger.Fatal(e.Start(":" + covid19.App.Port))
 		os.Exit(0)
 		break
