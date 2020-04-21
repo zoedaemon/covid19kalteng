@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-// NewRouter func
+// NewInstance create new echo instance
 func NewInstance() *echo.Echo {
 	e := echo.New()
 
