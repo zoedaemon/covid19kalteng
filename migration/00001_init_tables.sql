@@ -74,7 +74,8 @@ CREATE TABLE "data_definitions" (
     PRIMARY KEY ("id")
 ) WITH (OIDS = FALSE);
 
-
+DROP INDEX IF EXISTS idx_cases_location_provinsi_main;
+CREATE INDEX idx_cases_location_provinsi_main ON cases ((location->'provinsi_main'));  
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
@@ -84,3 +85,4 @@ DROP TABLE IF EXISTS "roles" CASCADE;
 DROP TABLE IF EXISTS "users" CASCADE;
 DROP TABLE IF EXISTS "edus" CASCADE;
 DROP TABLE IF EXISTS "cases" CASCADE;
+DROP TABLE IF EXISTS "data_definitions" CASCADE;

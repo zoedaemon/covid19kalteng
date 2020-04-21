@@ -3,6 +3,7 @@ package handlers
 import (
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/nlogs"
 
 	"fmt"
@@ -42,11 +43,11 @@ func ReporterLogin(c echo.Context) error {
 		"password": []string{"required"},
 	}
 
-	validate := validateRequestPayload(c, rules, &credentials)
+	validate := ValidateRequestPayload(c, rules, &credentials)
 	if validate != nil {
 		nlogs.NLog("warning", "ReporterLogin", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", true)
 
-		return returnInvalidResponse(http.StatusBadRequest, validate, "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusBadRequest, validate, ERR_MSG_INVALID_LOGIN)
 	}
 
 	// check if theres record
@@ -60,19 +61,19 @@ func ReporterLogin(c echo.Context) error {
 		if err != nil {
 			nlogs.NLog("warning", "ReporterLogin", map[string]interface{}{"message": fmt.Sprintf("password error on user %v", credentials.Key), "error": err}, c.Get("user").(*jwt.Token), "", true)
 
-			return returnInvalidResponse(http.StatusUnauthorized, err, "Login tidak valid")
+			return ReturnInvalidResponse(http.StatusUnauthorized, err, ERR_MSG_INVALID_LOGIN)
 		}
 
-		token, err = createJwtToken(strconv.FormatUint(lender.ID, 10), "reporter")
+		token, err = CreateJwtToken(strconv.FormatUint(lender.ID, 10), "reporter")
 		if err != nil {
 			nlogs.NLog("warning", "ReporterLogin", map[string]interface{}{"message": "error generating token", "error": err}, c.Get("user").(*jwt.Token), "", true)
 
-			return returnInvalidResponse(http.StatusInternalServerError, err, "Terjadi kesalahan")
+			return ReturnInvalidResponse(http.StatusInternalServerError, err, "Terjadi kesalahan")
 		}
 	} else {
 		nlogs.NLog("warning", "ReporterLogin", map[string]interface{}{"message": fmt.Sprintf("user not found %v", credentials.Key)}, c.Get("user").(*jwt.Token), "", true)
 
-		return returnInvalidResponse(http.StatusUnauthorized, "username not found", "Login tidak valid")
+		return ReturnInvalidResponse(http.StatusUnauthorized, "username not found", ERR_MSG_INVALID_LOGIN)
 	}
 
 	jwtConf := covid19.App.Config.GetStringMap(fmt.Sprintf("%s.jwt", covid19.App.ENV))

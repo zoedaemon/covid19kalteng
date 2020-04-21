@@ -4,6 +4,7 @@ import (
 	"covid19kalteng/components"
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/nlogs"
 
 	"crypto/aes"
@@ -112,11 +113,11 @@ func UserResetPasswordRequest(c echo.Context) error {
 		"email": []string{"required", "email"},
 	}
 
-	validate := validateRequestPayload(c, payloadRules, &resetRequestPayload)
+	validate := ValidateRequestPayload(c, payloadRules, &resetRequestPayload)
 	if validate != nil {
 		nlogs.NLog("warning", "UserResetPasswordRequest", map[string]interface{}{"message": "error validation", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	db := covid19.App.DB
@@ -129,14 +130,14 @@ func UserResetPasswordRequest(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "UserResetPasswordRequest", map[string]interface{}{"message": fmt.Sprintf("email not found %v", resetRequestPayload.Email), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("Email %s tidak ditemukan", resetRequestPayload.Email))
+		return ReturnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("Email %s tidak ditemukan", resetRequestPayload.Email))
 	}
 
 	token, err := generateResetPassToken(fmt.Sprintf("%v:%v", resetRequestPayload.Email, user.ID))
 	if err != nil {
 		nlogs.NLog("warning", "UserResetPasswordRequest", map[string]interface{}{"message": "error generating token for reset password", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "Terjadi kesalahan")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, err, "Terjadi kesalahan")
 	}
 
 	message := ""
@@ -154,7 +155,7 @@ func UserResetPasswordRequest(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("error", "UserFirstLoginChangePassword", map[string]interface{}{"message": fmt.Sprintf("fail sending email to %v", resetRequestPayload.Email)}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "Terjadi kesalahan")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, err, "Terjadi kesalahan")
 	}
 
 	return c.JSON(http.StatusOK, fmt.Sprintf("Instruksi telah dikirimkan ke email anda %v", resetRequestPayload.Email))
@@ -175,25 +176,25 @@ func UserResetPasswordVerify(c echo.Context) error {
 		"password": []string{"required"},
 	}
 
-	validate := validateRequestPayload(c, payloadRules, &resetVerifyPayload)
+	validate := ValidateRequestPayload(c, payloadRules, &resetVerifyPayload)
 	if validate != nil {
 		nlogs.NLog("warning", "UserResetPasswordVerify", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	d, err := decrypt(resetVerifyPayload.Token, covid19.App.Config.GetString(fmt.Sprintf("%s.passphrase", covid19.App.ENV)))
 	if err != nil {
 		nlogs.NLog("warning", "UserResetPasswordVerify", map[string]interface{}{"message": "decrypting token error", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "Terjadi kesalahan")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, err, "Terjadi kesalahan")
 	}
 
 	splits := strings.Split(d, "|")
 	if len(splits) != 3 {
 		nlogs.NLog("warning", "UserResetPasswordVerify", map[string]interface{}{"message": fmt.Sprintf("token tidak valid. len split = %v", len(splits))}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, "", "Token tidak valid")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, "", "Token tidak valid")
 	}
 	t, _ := strconv.ParseInt(splits[0], 10, 64)
 	e, _ := strconv.ParseInt(splits[1], 10, 64)
@@ -203,7 +204,7 @@ func UserResetPasswordVerify(c echo.Context) error {
 		if len(splits2) != 2 {
 			nlogs.NLog("warning", "UserResetPasswordVerify", map[string]interface{}{"message": fmt.Sprintf("token tidak valid. len split = %v", len(splits2))}, c.Get("user").(*jwt.Token), "", false)
 
-			return returnInvalidResponse(http.StatusUnprocessableEntity, "", "Token tidak valid")
+			return ReturnInvalidResponse(http.StatusUnprocessableEntity, "", "Token tidak valid")
 		}
 
 		err := user.FilterSearchSingle(&Filter{
@@ -212,13 +213,13 @@ func UserResetPasswordVerify(c echo.Context) error {
 		if err != nil {
 			nlogs.NLog("warning", "UserResetPasswordVerify", map[string]interface{}{"message": fmt.Sprintf("user not found = %v", splits2[0])}, c.Get("user").(*jwt.Token), "", false)
 
-			return returnInvalidResponse(http.StatusNotFound, err, "Token tidak valid")
+			return ReturnInvalidResponse(http.StatusNotFound, err, "Token tidak valid")
 		}
 		origin = user
 		user.ChangePassword(resetVerifyPayload.Password)
 		user.Save()
 	} else {
-		return returnInvalidResponse(http.StatusUnprocessableEntity, "", "Token tidak valid")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, "", "Token tidak valid")
 	}
 	nlogs.NLog("info", "UserResetPasswordVerify", map[string]interface{}{"message": "reset password success"}, c.Get("user").(*jwt.Token), "", false)
 

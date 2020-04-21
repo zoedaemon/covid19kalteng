@@ -12,7 +12,7 @@ import (
 func TestGetUserList(t *testing.T) {
 	RebuildData()
 
-	api := router.NewRouter()
+	api := router.NewInstance()
 
 	server := httptest.NewServer(api)
 
@@ -51,7 +51,7 @@ func TestGetUserList(t *testing.T) {
 func TestNewUser(t *testing.T) {
 	RebuildData()
 
-	api := router.NewRouter()
+	api := router.NewInstance()
 
 	server := httptest.NewServer(api)
 
@@ -112,7 +112,7 @@ func TestNewUser(t *testing.T) {
 func TestGetUserbyID(t *testing.T) {
 	RebuildData()
 
-	api := router.NewRouter()
+	api := router.NewInstance()
 
 	server := httptest.NewServer(api)
 
@@ -144,7 +144,7 @@ func TestGetUserbyID(t *testing.T) {
 func TestPatchUser(t *testing.T) {
 	RebuildData()
 
-	api := router.NewRouter()
+	api := router.NewInstance()
 
 	server := httptest.NewServer(api)
 

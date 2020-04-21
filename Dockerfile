@@ -57,14 +57,15 @@ RUN apk add --update git gcc libc-dev tzdata;
 
 ENV TZ=Asia/Jakarta
 
-RUN go get -u github.com/golang/dep/cmd/dep
+# RUN go get -u github.com/golang/dep/cmd/dep
+RUN go get -d
 
 CMD if [ "${APPENV}" = "staging" ] || [ "${APPENV}" = "production" ] ; then \
         cp deploy/conf.yaml config.yaml ; \
     elif [ "${APPENV}" = "dev" ] ; then \
         cp deploy/dev-config.yaml config.yaml ; \
     fi \
-    && dep ensure -v \
+    # && dep ensure -v \
     && go build -v -o $GOPATH/bin/"${APPNAME}" \
     && "${APPNAME}" run \
     && "${APPNAME}" migrate up \

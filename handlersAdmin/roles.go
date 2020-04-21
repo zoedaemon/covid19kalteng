@@ -3,6 +3,7 @@ package handlersAdmin
 import (
 	"covid19kalteng/components/basemodel"
 	"covid19kalteng/models"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/nlogs"
 
 	"encoding/json"
@@ -30,9 +31,9 @@ type RolePayload struct {
 // RoleList get all roles
 func RoleList(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_role_list")
+	err := ValidatePermission(c, "core_role_list")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	// pagination parameters
@@ -65,7 +66,7 @@ func RoleList(c echo.Context) error {
 			Status string   `json:"status"`
 		}
 		result, err = roles.PagedFindFilter(page, rows, orderby, sort, &Filter{
-			ID:     customSplit(c.QueryParam("id"), ","),
+			ID:     CustomSplit(c.QueryParam("id"), ","),
 			Name:   c.QueryParam("name"),
 			Status: c.QueryParam("status"),
 		})
@@ -74,7 +75,7 @@ func RoleList(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "RoleList", map[string]interface{}{"message": "role listing error", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, "Role tidak Ditemukan")
+		return ReturnInvalidResponse(http.StatusNotFound, err, "Role tidak Ditemukan")
 	}
 
 	return c.JSON(http.StatusOK, result)
@@ -83,9 +84,9 @@ func RoleList(c echo.Context) error {
 // RoleDetails get role detail by id
 func RoleDetails(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_role_details")
+	err := ValidatePermission(c, "core_role_details")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	Iroles := models.Roles{}
@@ -95,7 +96,7 @@ func RoleDetails(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "RoleDetails", map[string]interface{}{"message": "error finding role", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, "Role ID tidak ditemukan")
+		return ReturnInvalidResponse(http.StatusNotFound, err, "Role ID tidak ditemukan")
 	}
 
 	return c.JSON(http.StatusOK, Iroles)
@@ -104,9 +105,9 @@ func RoleDetails(c echo.Context) error {
 // RoleNew create new role
 func RoleNew(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_role_new")
+	err := ValidatePermission(c, "core_role_new")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	Iroles := models.Roles{}
@@ -120,11 +121,11 @@ func RoleNew(c echo.Context) error {
 		"permissions": []string{},
 	}
 
-	validate := validateRequestPayload(c, payloadRules, &rolePayload)
+	validate := ValidateRequestPayload(c, payloadRules, &rolePayload)
 	if validate != nil {
 		nlogs.NLog("warning", "RoleNew", map[string]interface{}{"message": "validation error", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	marshal, _ := json.Marshal(rolePayload)
@@ -134,7 +135,7 @@ func RoleNew(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("error", "RoleNew", map[string]interface{}{"message": "error creating role", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat Internal Roles")
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat Internal Roles")
 	}
 
 	nlogs.NAudittrail(models.Roles{}, Iroles, c.Get("user").(*jwt.Token), "role", fmt.Sprint(Iroles.ID), "create")
@@ -145,9 +146,9 @@ func RoleNew(c echo.Context) error {
 // RolePatch edit role by id
 func RolePatch(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_role_patch")
+	err := ValidatePermission(c, "core_role_patch")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	IrolesID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -158,7 +159,7 @@ func RolePatch(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "RolePatch", map[string]interface{}{"message": fmt.Sprintf("error finding role %v", IrolesID), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("Internal Role %v tidak ditemukan", IrolesID))
+		return ReturnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("Internal Role %v tidak ditemukan", IrolesID))
 	}
 	origin := Iroles
 
@@ -170,11 +171,11 @@ func RolePatch(c echo.Context) error {
 		"permissions": []string{},
 	}
 
-	validate := validateRequestPayload(c, payloadRules, &rolePayload)
+	validate := ValidateRequestPayload(c, payloadRules, &rolePayload)
 	if validate != nil {
 		nlogs.NLog("warning", "RolePatch", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	if len(rolePayload.Name) > 0 {
@@ -197,7 +198,7 @@ func RolePatch(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("error", "RolePatch", map[string]interface{}{"message": "error saving role", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, fmt.Sprintf("Gagal update Internal Roles %v", IrolesID))
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, fmt.Sprintf("Gagal update Internal Roles %v", IrolesID))
 	}
 
 	nlogs.NAudittrail(origin, Iroles, c.Get("user").(*jwt.Token), "role", fmt.Sprint(Iroles.ID), "update")
@@ -208,9 +209,9 @@ func RolePatch(c echo.Context) error {
 // RoleRange get all role without pagination
 func RoleRange(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_role_list")
+	err := ValidatePermission(c, "core_role_list")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	Iroles := models.Roles{}
@@ -221,7 +222,7 @@ func RoleRange(c echo.Context) error {
 	sort := strings.Split(c.QueryParam("sort"), ",")
 
 	name := c.QueryParam("name")
-	id := customSplit(c.QueryParam("id"), ",")
+	id := CustomSplit(c.QueryParam("id"), ",")
 	status := c.QueryParam("status")
 
 	type Filter struct {
@@ -239,7 +240,7 @@ func RoleRange(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "RoleRange", map[string]interface{}{"message": "error listing roles", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, "Role tidak Ditemukan")
+		return ReturnInvalidResponse(http.StatusNotFound, err, "Role tidak Ditemukan")
 	}
 
 	return c.JSON(http.StatusOK, result)

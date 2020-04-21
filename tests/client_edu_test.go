@@ -12,7 +12,7 @@ import (
 func TestEduList(t *testing.T) {
 	RebuildData()
 
-	api := router.NewRouter()
+	api := router.NewInstance()
 
 	server := httptest.NewServer(api)
 

@@ -5,6 +5,7 @@ import (
 	"covid19kalteng/components/basemodel"
 	"covid19kalteng/covid19"
 	"covid19kalteng/models"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/nlogs"
 
 	"encoding/json"
@@ -42,9 +43,9 @@ type (
 // UserList gets all users
 func UserList(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_user_list")
+	err := ValidatePermission(c, "core_user_list")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	db := covid19.App.DB
@@ -74,7 +75,7 @@ func UserList(c echo.Context) error {
 		if name := c.QueryParam("username"); len(name) > 0 {
 			db = db.Where("users.username LIKE ?", "%"+name+"%")
 		}
-		if id := customSplit(c.QueryParam("id"), ","); len(id) > 0 {
+		if id := CustomSplit(c.QueryParam("id"), ","); len(id) > 0 {
 			db = db.Where("users.id IN (?)", id)
 		}
 		if email := c.QueryParam("email"); len(email) > 0 {
@@ -110,7 +111,7 @@ func UserList(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "UserList", map[string]interface{}{"message": "error listing users", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, "Tidak ada data user yang tersedia")
+		return ReturnInvalidResponse(http.StatusNotFound, err, "Tidak ada data user yang tersedia")
 	}
 
 	lastPage := int(math.Ceil(float64(totalRows) / float64(rows)))
@@ -131,9 +132,9 @@ func UserList(c echo.Context) error {
 // UserDetails get user detail by id
 func UserDetails(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_user_details")
+	err := ValidatePermission(c, "core_user_details")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	db := covid19.App.DB
@@ -149,7 +150,7 @@ func UserDetails(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "UserDetails", map[string]interface{}{"message": fmt.Sprintf("error finding user %v", userID), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, "User ID tidak ditemukan")
+		return ReturnInvalidResponse(http.StatusNotFound, err, "User ID tidak ditemukan")
 	}
 
 	return c.JSON(http.StatusOK, user)
@@ -159,9 +160,9 @@ func UserDetails(c echo.Context) error {
 func UserNew(c echo.Context) error {
 
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_user_new")
+	err := ValidatePermission(c, "core_user_new")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	userM := models.User{}
@@ -175,11 +176,11 @@ func UserNew(c echo.Context) error {
 		"status":   []string{},
 	}
 
-	validate := validateRequestPayload(c, payloadRules, &userPayload)
+	validate := ValidateRequestPayload(c, payloadRules, &userPayload)
 	if validate != nil {
 		nlogs.NLog("warning", "UserNew", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	marshal, _ := json.Marshal(userPayload)
@@ -199,7 +200,7 @@ func UserNew(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("error", "UserNew", map[string]interface{}{"message": "error creating user", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat User")
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, "Gagal membuat User")
 	}
 
 	to := newUser.Email
@@ -211,7 +212,7 @@ func UserNew(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("error", "UserNew", map[string]interface{}{"message": fmt.Sprintf("error sending password to email : %v", to), "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, "Gagal mengirim password ke email anda")
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, "Gagal mengirim password ke email anda")
 	}
 
 	nlogs.NAudittrail(models.User{}, newUser, c.Get("user").(*jwt.Token), "user", fmt.Sprint(newUser.ID), "create")
@@ -222,9 +223,9 @@ func UserNew(c echo.Context) error {
 // UserPatch edit user by id
 func UserPatch(c echo.Context) error {
 	defer c.Request().Body.Close()
-	err := validatePermission(c, "core_user_patch")
+	err := ValidatePermission(c, "core_user_patch")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
+		return ReturnInvalidResponse(http.StatusForbidden, err, fmt.Sprintf("%s", err))
 	}
 
 	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -235,7 +236,7 @@ func UserPatch(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "error finding user", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("User %v tidak ditemukan", userID))
+		return ReturnInvalidResponse(http.StatusNotFound, err, fmt.Sprintf("User %v tidak ditemukan", userID))
 	}
 	origin := userM
 
@@ -246,11 +247,11 @@ func UserPatch(c echo.Context) error {
 		"roles":    []string{"valid_id:roles"},
 		"status":   []string{},
 	}
-	validate := validateRequestPayload(c, payloadRules, &userPayload)
+	validate := ValidateRequestPayload(c, payloadRules, &userPayload)
 	if validate != nil {
 		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "validation error", "error": validate}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, validate, "Kesalahan Validasi")
 	}
 
 	db := covid19.App.DB
@@ -262,7 +263,7 @@ func UserPatch(c echo.Context) error {
 	if len(userPayload.Roles) != count {
 		nlogs.NLog("warning", "UserPatch", map[string]interface{}{"message": "invalid roles", "roles": userPayload.Roles}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusUnprocessableEntity, nil, "Roles tidak valid.")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, nil, "Roles tidak valid.")
 	}
 
 	if len(userPayload.Username) > 0 {
@@ -285,7 +286,7 @@ func UserPatch(c echo.Context) error {
 	if err != nil {
 		nlogs.NLog("error", "UserPatch", map[string]interface{}{"message": "error saving user", "error": err}, c.Get("user").(*jwt.Token), "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, fmt.Sprintf("Gagal update User %v", userID))
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, fmt.Sprintf("Gagal update User %v", userID))
 	}
 
 	nlogs.NAudittrail(origin, userM, c.Get("user").(*jwt.Token), "user", fmt.Sprint(userM.ID), "update")

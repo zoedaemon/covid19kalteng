@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"covid19kalteng/covid19"
 	"covid19kalteng/logic/cases"
 	"covid19kalteng/models"
-	"covid19kalteng/modules"
+	. "covid19kalteng/modules"
 	"covid19kalteng/modules/date"
 	"covid19kalteng/modules/nlogs"
+	"covid19kalteng/modules/utils"
 	"fmt"
 	"net/http"
 	"strings"
@@ -22,7 +22,7 @@ type CaseFilter struct {
 	DataDetail string `json:"data_detail" condition:"LIKE,optional"`
 }
 
-// CaseList get all bank list
+//CaseList get all bank list
 func CaseList(c echo.Context) error {
 	const LogTag = "CaseList"
 	defer c.Request().Body.Close()
@@ -41,22 +41,22 @@ func CaseList(c echo.Context) error {
 	//filters date
 	startDate, err := date.ParseSimple(c.QueryParam("start_date"))
 	if err != nil && err.Error() != "nil" {
-		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "format start_date salah")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, err, "format start_date salah")
 	}
 	endDate, err := date.ParseSimple(c.QueryParam("end_date"))
 	if err != nil && err.Error() != "nil" {
-		return returnInvalidResponse(http.StatusUnprocessableEntity, err, "format end_date salah")
+		return ReturnInvalidResponse(http.StatusUnprocessableEntity, err, "format end_date salah")
 	}
 
 	//init models for response
 	var cases []models.Case
 
 	//Pagination Custom Query
-	QPaged := modules.QueryPaged{}
+	QPaged := QueryPaged{}
 	QPaged.Init(c)
 
 	//custom query
-	db := covid19.App.DB
+	db := utils.GetApp(c).DB
 	db = db.Table("cases").
 		Select("*")
 	// Joins("INNER JOIN banks b ON products.id IN (SELECT UNNEST(b.products)) ").
@@ -73,16 +73,18 @@ func CaseList(c echo.Context) error {
 		db = db.Where(fmt.Sprintf(LocQuery, locKotKabField), "%"+strings.ToLower(locKotKabData)+"%")
 	}
 
+	//default format for filter
+	const beetweenCondition = "created_at BETWEEN ? AND ?"
 	//filter by date
 	if !startDate.IsZero() {
 		if !endDate.IsZero() {
 			//GOTCHAS : between startdate now() must now() + 1 day
-			db = db.Where("created_at BETWEEN ? AND ?", startDate, endDate.AddDate(0, 0, 1))
+			db = db.Where(beetweenCondition, startDate, endDate.AddDate(0, 0, 1))
 		} else {
-			db = db.Where("created_at BETWEEN ? AND ?", startDate, startDate.AddDate(0, 0, 1))
+			db = db.Where(beetweenCondition, startDate, startDate.AddDate(0, 0, 1))
 		}
 	} else if !endDate.IsZero() {
-		db = db.Where("created_at BETWEEN ? AND ?", endDate, endDate.AddDate(0, 0, 1))
+		db = db.Where(beetweenCondition, endDate, endDate.AddDate(0, 0, 1))
 	}
 
 	//generate filter, return db and error
@@ -92,7 +94,7 @@ func CaseList(c echo.Context) error {
 			"message": "error list cases",
 			"error":   err}, token, "", false)
 
-		return returnInvalidResponse(http.StatusInternalServerError, err, "kesalahan dalam mendapatkan data")
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, "kesalahan dalam mendapatkan data")
 	}
 
 	//execute anonymous function pass db and data pass by reference (services)
@@ -108,7 +110,7 @@ func CaseList(c echo.Context) error {
 		nlogs.NLog("warning", LogTag, map[string]interface{}{
 			"message": "empty data cases",
 			"error":   err}, token, "", false)
-		return returnInvalidResponse(http.StatusInternalServerError, err, "Data Kasus Kosong")
+		return ReturnInvalidResponse(http.StatusInternalServerError, err, "Data Kasus Kosong")
 	}
 
 	//get result format
@@ -121,9 +123,9 @@ func CaseNew(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	//TODO: fix this generals function validatePermission and others
-	err := validatePermission(c, "cases_new")
+	err := ValidatePermission(c, "cases_new")
 	if err != nil {
-		return returnInvalidResponse(http.StatusForbidden, err, err.Error())
+		return ReturnInvalidResponse(http.StatusForbidden, err, err.Error())
 	}
 	_, info := cases.New(c, nil)
 	return info
